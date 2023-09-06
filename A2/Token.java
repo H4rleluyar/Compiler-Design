@@ -18,7 +18,8 @@ public class Token {
         PERIOD, COLON, COLON_EQUALS, SEMICOLON,
         PLUS, MINUS, STAR, SLASH, LPAREN, RPAREN,
         EQUALS, LESS_THAN, DIV, MOD, AND, OR, NOT, CONST, TYPE, VAR, PROCEDURE, FUNCTION,
-        WHILE, DO, FOR, TO, DOWNTO, IF, THEN, ELSE, CASE, OF, COMMA, GREATER_THAN, LBRACKET, RBRACKET, UPARROW, HUH,
+        WHILE, DO, FOR, TO, DOWNTO, IF, THEN, ELSE, CASE, OF, COMMA, GREATER_THAN, LBRACKET, RBRACKET, CARAT,
+        HUH, DOT_DOT, NOT_EQUALS, LESS_EQUALS, GREATER_EQUALS,
         IDENTIFIER, INTEGER, REAL, STRING, END_OF_FILE, ERROR
     }
 
@@ -178,24 +179,36 @@ public class Token {
         token.lineNumber = source.lineNumber();
 
         switch (firstChar) {
-            case '.':
-                token.type = TokenType.PERIOD;
-                break; // finish this logic later for ..
+            case '.': {
+                char nextChar = source.nextChar();
 
+                if (nextChar == '.') // check if next symbol is . so that it would be ..
+                {
+                    token.text += '.';
+                    token.type = TokenType.DOT_DOT;
+                } else { // else it's just a period
+                    token.type = TokenType.PERIOD;
+                    return token;
+                }
+                break;
+            }
             case ',':
                 token.type = TokenType.COMMA;
                 break;
-            case '=':
-                token.type = TokenType.EQUALS;
+            case ':': {
+                char nextChar = source.nextChar();
+                // Is it the := symbol?
+                if (nextChar == '=') {
+                    token.text += '=';
+                    token.type = TokenType.COLON_EQUALS;
+                }
+                // No, it's just the : symbol.
+                else {
+                    token.type = TokenType.COLON;
+                    return token; // already consumed :
+                }
                 break;
-
-            case '<':
-                token.type = TokenType.LESS_THAN;
-                break; // finish logic for other cases later here
-            case '>':
-                token.type = TokenType.GREATER_THAN;
-                break; // finish logic for other cases later here
-
+            }
             case ';':
                 token.type = TokenType.SEMICOLON;
                 break;
@@ -217,6 +230,37 @@ public class Token {
             case ')':
                 token.type = TokenType.RPAREN;
                 break;
+            case '=':
+                token.type = TokenType.EQUALS;
+                break;
+            case '<': {
+                char nextChar = source.nextChar();
+                if (nextChar == '>') { // check if symbol will be <>
+                    token.text += '>';
+                    token.type = TokenType.NOT_EQUALS;
+                } else if (nextChar == '=') { // check if symbol will be <=
+                    token.text += '=';
+                    token.type = TokenType.LESS_EQUALS;
+                } else { // symbol is just <
+                    token.type = TokenType.LESS_THAN;
+                    return token;
+                }
+                break;
+            }
+            case '>': {
+                char nextChar = source.nextChar();
+                if (nextChar == '=') { // check if symbol will be >=
+                    token.text += '=';
+                    token.type = TokenType.GREATER_EQUALS;
+                } else { // symbol is just >
+                    token.type = TokenType.GREATER_THAN;
+                    return token;
+                }
+                break;
+            }
+            case '\'':
+                token.type = TokenType.HUH;
+                break;
             case '[':
                 token.type = TokenType.LBRACKET;
                 break;
@@ -224,30 +268,8 @@ public class Token {
                 token.type = TokenType.RBRACKET;
                 break;
             case '^':
-                token.type = TokenType.UPARROW;
+                token.type = TokenType.CARAT;
                 break;
-            case '\'':
-                token.type = TokenType.HUH;
-                break;
-
-            case ':': {
-                char nextChar = source.nextChar();
-
-                // Is it the := symbol?
-                if (nextChar == '=') {
-                    token.text += '=';
-                    token.type = TokenType.COLON_EQUALS;
-                }
-
-                // No, it's just the : symbol.
-                else {
-                    token.type = TokenType.COLON;
-                    return token; // already consumed :
-                }
-
-                break;
-            }
-
             case Source.EOF:
                 token.type = TokenType.END_OF_FILE;
                 break;
