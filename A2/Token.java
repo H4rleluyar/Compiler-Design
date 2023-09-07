@@ -1,6 +1,6 @@
 /**
  * Token class for a simple interpreter.
- * 
+ *
  * (c) 2020 by Ronald Mak
  * Department of Computer Science
  * San Jose State University
@@ -20,7 +20,7 @@ public class Token {
         EQUALS, LESS_THAN, DIV, MOD, AND, OR, NOT, CONST, TYPE, VAR, PROCEDURE, FUNCTION,
         WHILE, DO, FOR, TO, DOWNTO, IF, THEN, ELSE, CASE, OF, COMMA, GREATER_THAN, LBRACKET, RBRACKET, CARAT,
         HUH, DOT_DOT, NOT_EQUALS, LESS_EQUALS, GREATER_EQUALS,
-        IDENTIFIER, INTEGER, REAL, STRING, END_OF_FILE, ERROR
+        IDENTIFIER, INTEGER, REAL, CHARACTER, STRING, END_OF_FILE, ERROR
     }
 
     /**
@@ -67,7 +67,7 @@ public class Token {
 
     /**
      * Constructor.
-     * 
+     *
      * @param firstChar the first character of the token.
      */
     private Token(char firstChar) {
@@ -76,7 +76,7 @@ public class Token {
 
     /**
      * Construct a word token.
-     * 
+     *
      * @param firstChar the first character of the token.
      * @param source    the input source.
      * @return the word token.
@@ -101,7 +101,7 @@ public class Token {
 
     /**
      * Construct a number token and set its value.
-     * 
+     *
      * @param firstChar the first character of the token.
      * @param source    the input source.
      * @return the number token.
@@ -141,7 +141,7 @@ public class Token {
 
     /**
      * Construct a string token and set its value.
-     * 
+     *
      * @param firstChar the first character of the token.
      * @param source    the input source.
      * @return the string token.
@@ -159,17 +159,24 @@ public class Token {
         token.text += '\''; // append the closing '
         source.nextChar(); // and consume it
 
-        token.type = TokenType.STRING;
+        //Check if the value is a single character or not
+        var text = token.text.substring(1, token.text.length() - 1);
+
+        if (text.length() == 1)
+            token.type = TokenType.CHARACTER;
+        else
+            token.type = TokenType.STRING;
+
 
         // Don't include the leading and trailing ' in the value.
-        token.value = token.text.substring(1, token.text.length() - 1);
+        token.value = text;
 
         return token;
     }
 
     /**
      * Construct a special symbol token and set its value.
-     * 
+     *
      * @param firstChar the first character of the token.
      * @param source    the input source.
      * @return the special symbol token.
@@ -286,7 +293,7 @@ public class Token {
 
     /**
      * Handle a token error.
-     * 
+     *
      * @param token   the bad token.
      * @param message the error message.
      */

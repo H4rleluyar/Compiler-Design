@@ -47,11 +47,34 @@ public class Scanner {
 
         if (Character.isLetter(ch))
             return Token.word(ch, source);
+
         else if (Character.isDigit(ch))
             return Token.number(ch, source);
-        else if (ch == '\'')
-            return Token.string(ch, source);
-        else
+
+        else if (ch == '\'') {
+            Token fullString = Token.string(ch, source);
+
+            //newCh used in case of consecutive single quote to append the following string
+            char newCh = source.currentChar();
+
+            //loops until the following character is no longer a single quote
+            //Appends next chunk of string into fullString, then checks if
+            //the value is a single character or a string
+            while (newCh == '\'') {
+                Token consecutivePart = Token.string(newCh, source);
+                fullString.text += consecutivePart.text.substring(1);
+                fullString.value += consecutivePart.text.substring(1, consecutivePart.text.length() - 1);
+
+                if (fullString.text.substring(1, fullString.text.length() - 1).length() == 1)
+                    fullString.type = Token.TokenType.CHARACTER;
+                else
+                    fullString.type = Token.TokenType.STRING;
+
+                newCh = source.currentChar();
+            }
+
+            return fullString;
+        } else
             return Token.specialSymbol(ch, source);
     }
 }
