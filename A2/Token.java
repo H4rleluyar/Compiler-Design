@@ -152,20 +152,32 @@ public class Token {
 
         // Loop to append the rest of the characters of the string,
         // up to but not including the closing quote.
-        for (char ch = source.nextChar(); ch != '\''; ch = source.nextChar()) {
+        for (char ch = source.nextChar(); ch != '\'' && ch != Character.MIN_VALUE; ch = source.nextChar()) {
             token.text += ch;
         }
 
-        token.text += '\''; // append the closing '
-        source.nextChar(); // and consume it
+        //token.text += '\''; // append the closing '
+        char ch = source.nextChar(); // and consume it
 
         //Check if the value is a single character or not
-        var text = token.text.substring(1, token.text.length() - 1);
+        var text = token.text.substring(1, token.text.length());
 
-        if (text.length() == 1)
-            token.type = TokenType.CHARACTER;
+        if (ch == Character.MIN_VALUE) { // Check if string ends with a null
+            // Token is an EOF-reached error
+            token.text += Character.MIN_VALUE; // End EOF string with EOF character
+                                               // Appending EOF is a required anchor for the token error msg to fire.
+            //tokenError(token, "String not closed"); // Token error that displays erroneous partial string
+            //token.type = TokenType.ERROR; // Error recovery: we want to treat this as a good string in case we can
+                                            // recover the context later.
+        }
         else
-            token.type = TokenType.STRING;
+            // Token is a string or character
+            token.text += '\''; // append the closing '
+            if (text.length() == 1)
+                token.type = TokenType.CHARACTER;
+            else
+                token.type = TokenType.STRING;
+
 
 
         // Don't include the leading and trailing ' in the value.

@@ -73,8 +73,24 @@ public class Scanner {
                 newCh = source.currentChar();
             }
 
+            // Display token error, string ended by EOF character
+            if (fullString.text.charAt(fullString.text.length() - 1) == Character.MIN_VALUE) {
+                tokenError(fullString, "String not closed");
+            }
+
             return fullString;
         } else
             return Token.specialSymbol(ch, source);
+    }
+
+    /**
+     * Handle a token error.
+     *
+     * @param token   the bad token.
+     * @param message the error message.
+     */
+    private static void tokenError(Token token, String message) {
+        System.out.println("TOKEN ERROR at line " + token.lineNumber
+                + ": " + message + " at '" + token.text + "'");
     }
 }
