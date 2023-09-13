@@ -1,6 +1,6 @@
 /**
  * Token class for a simple interpreter.
- * 
+ *
  * (c) 2020 by Ronald Mak
  * Department of Computer Science
  * San Jose State University
@@ -9,7 +9,7 @@ package frontend;
 
 import java.util.HashMap;
 
-import javax.xml.transform.Source;
+//import javax.xml.transform.Source;
 
 public class Token {
     public enum TokenType // create TokenType that enables variable to be a set a predefined constants
@@ -20,7 +20,7 @@ public class Token {
         EQUALS, LESS_THAN, DIV, MOD, AND, OR, NOT, CONST, TYPE, VAR, PROCEDURE, FUNCTION,
         WHILE, DO, FOR, TO, DOWNTO, IF, THEN, ELSE, CASE, OF, COMMA, GREATER_THAN, LBRACKET, RBRACKET, CARAT,
         HUH, DOT_DOT, NOT_EQUALS, LESS_EQUALS, GREATER_EQUALS,
-        IDENTIFIER, INTEGER, REAL, STRING, END_OF_FILE, ERROR
+        IDENTIFIER, INTEGER, REAL, CHARACTER, STRING, END_OF_FILE, ERROR
     }
 
     /**
@@ -67,7 +67,7 @@ public class Token {
 
     /**
      * Constructor.
-     * 
+     *
      * @param firstChar the first character of the token.
      */
     private Token(char firstChar) {
@@ -76,7 +76,7 @@ public class Token {
 
     /**
      * Construct a word token.
-     * 
+     *
      * @param firstChar the first character of the token.
      * @param source    the input source.
      * @return the word token.
@@ -101,7 +101,7 @@ public class Token {
 
     /**
      * Construct a number token and set its value.
-     * 
+     *
      * @param firstChar the first character of the token.
      * @param source    the input source.
      * @return the number token.
@@ -141,7 +141,7 @@ public class Token {
 
     /**
      * Construct a string token and set its value.
-     * 
+     *
      * @param firstChar the first character of the token.
      * @param source    the input source.
      * @return the string token.
@@ -152,24 +152,43 @@ public class Token {
 
         // Loop to append the rest of the characters of the string,
         // up to but not including the closing quote.
-        for (char ch = source.nextChar(); ch != '\''; ch = source.nextChar()) {
+        for (char ch = source.nextChar(); ch != '\'' && ch != Character.MIN_VALUE; ch = source.nextChar()) {
             token.text += ch;
         }
 
-        token.text += '\''; // append the closing '
-        source.nextChar(); // and consume it
+        //token.text += '\''; // append the closing '
+        char ch = source.nextChar(); // and consume it
 
-        token.type = TokenType.STRING;
+        //Check if the value is a single character or not
+        var text = token.text.substring(1, token.text.length());
+
+        if (ch == Character.MIN_VALUE) { // Check if string ends with a null
+            // Token is an EOF-reached error
+            token.text += Character.MIN_VALUE; // End EOF string with EOF character
+                                               // Appending EOF is a required anchor for the token error msg to fire.
+            //tokenError(token, "String not closed"); // Token error that displays erroneous partial string
+            //token.type = TokenType.ERROR; // Error recovery: we want to treat this as a good string in case we can
+                                            // recover the context later.
+        }
+        else
+            // Token is a string or character
+            token.text += '\''; // append the closing '
+            if (text.length() == 1)
+                token.type = TokenType.CHARACTER;
+            else
+                token.type = TokenType.STRING;
+
+
 
         // Don't include the leading and trailing ' in the value.
-        token.value = token.text.substring(1, token.text.length() - 1);
+        token.value = text;
 
         return token;
     }
 
     /**
      * Construct a special symbol token and set its value.
-     * 
+     *
      * @param firstChar the first character of the token.
      * @param source    the input source.
      * @return the special symbol token.
@@ -286,7 +305,7 @@ public class Token {
 
     /**
      * Handle a token error.
-     * 
+     *
      * @param token   the bad token.
      * @param message the error message.
      */
