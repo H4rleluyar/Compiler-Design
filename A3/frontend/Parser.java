@@ -7,9 +7,11 @@
  */
 package frontend;
 
+import java.util.Arrays;
 import java.util.HashSet;
 
 import intermediate.*;
+
 import static frontend.Token.TokenType.*;
 import static intermediate.Node.NodeType.*;
 
@@ -145,7 +147,9 @@ public class Parser {
             case IF:
                 stmtNode = parseIfStatement();
                 break;
-            // case CASE : stmtNode = parseCaseStatement(); break; //readd this later
+            case CASE :
+                stmtNode = parseCaseStatement(); // Jerry
+                break;
             case SEMICOLON:
                 stmtNode = null;
                 break; // empty statement
@@ -202,6 +206,121 @@ public class Parser {
         }
 
         return ifNode;
+    }
+
+    public Node parseCaseStatement() {
+        // Jerry
+        //
+        // Assert CASE
+        // New Case node
+        // Parse expression (assuming only expressions, full Pascal accepts constants too)
+        // Analyze expression's type for later case constant type verification (assuming ordinals, full Pascal accepts strings too.)
+        // Assert OF
+        // while acceptable constant type (ordinal only) found
+        //   New case branch node
+        //   Parse single constant (same token used to check acceptable type)
+        //   while COMMA found
+        //     Parse comma
+        //     Parse constant (keep checking for acceptable type)
+        //   Assert COLON
+        //   Parse a statement
+        //   Case node adopts case branch node
+        //   If SEMICOLON found, consume
+        //     Else break loop (goes to END)
+        // Assert END
+
+        // Consume CASE
+        if (currentToken.type != Token.TokenType.CASE) {
+            syntaxError("Expecting CASE");
+        } else {
+            currentToken = scanner.nextToken();
+        }
+
+        // New Case node
+        Node caseNode = new Node(Node.NodeType.CASE);
+
+        // Parse expression
+        Node expression = parseExpression(); // Assuming only expressions, full Pascal accepts constants too
+        caseNode.adopt(expression);
+
+        // Get expected constant-list type from the expression we just parsed.
+        // However we only care about ordinals in our simplified Pascal so we don't need this.
+        /*Token.TokenType constantType = null;
+        switch (expression.type) {
+            case ADD:
+            case SUBTRACT:
+            case MULTIPLY:
+            case INTEGER_DIVIDE:
+                constantType = Token.TokenType.INTEGER;
+                break;
+            default: syntaxError("Case expression expected ordinal or string type.");
+        }*/
+
+        // Assert OF
+        if (currentToken.type != Token.TokenType.OF) {
+            syntaxError("Expecting OF");
+        } else {
+            currentToken = scanner.nextToken();
+        }
+
+        // while acceptable constant type (ordinal only) found
+        final Token.TokenType[] acceptableTokens = {
+                Token.TokenType.PLUS,
+                Token.TokenType.MINUS,
+                Token.TokenType.INTEGER,
+                Token.TokenType.IDENTIFIER,
+        };
+        while (Arrays.asList(acceptableTokens).contains(currentToken.type)) { // Replace with a do-while lol
+
+            // New case branch node
+            Node caseSelectBranch = new Node(Node.NodeType.SELECT_BRANCH);
+
+            // Parse single constant (same token used to check acceptable type)
+            caseSelectBranch.adopt(parseTerm());
+
+            // while COMMA found
+            while (currentToken.type == Token.TokenType.COMMA) {
+
+                // Parse comma+constant (keep checking for acceptable type)
+                currentToken = scanner.nextToken(); // Comma
+                if (!Arrays.asList(acceptableTokens).contains(currentToken.type)) {
+                    semanticError("Wrong case branch constant type!");
+                }
+                else {
+                    caseSelectBranch.adopt(parseTerm());
+                }
+            }
+
+            // Assert COLON
+            if (currentToken.type != Token.TokenType.COLON) {
+                syntaxError("Expecting COLON");
+            } else {
+                currentToken = scanner.nextToken();
+            }
+
+            // Parse a statement
+            Node caseStatementNode = parseStatement();
+            caseSelectBranch.adopt(caseStatementNode);
+            caseNode.adopt(caseSelectBranch);
+
+            // If SEMICOLON found, consume and loop back
+            if (currentToken.type == Token.TokenType.SEMICOLON) {
+                currentToken = scanner.nextToken();
+            }
+            // Else break while loop (goes to END)
+            else {
+                break;
+            }
+        }
+
+        // Assert END
+        if (currentToken.type != Token.TokenType.END) {
+            syntaxError("Expecting END");
+        } else {
+            currentToken = scanner.nextToken();
+        }
+
+        return caseNode;
     }
 
     private Node parseForStatement() {
@@ -682,3 +801,4 @@ public class Parser {
         errorCount++;
     }
 }
+

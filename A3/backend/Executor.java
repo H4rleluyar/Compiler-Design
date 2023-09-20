@@ -32,7 +32,7 @@ public class Executor {
         relationals.add(Node.NodeType.GE);
     }
 
-    public Executor() {
+    public Executor(Symtab symtab) {
     }
 
     public Object visit(Node node) {
@@ -44,7 +44,7 @@ public class Executor {
             case ASSIGN:
             case LOOP:
             case IF:
-            case SWITCH:
+            case CASE:
             case WRITE:
             case WRITELN:
                 return visitStatement(node);
@@ -74,8 +74,8 @@ public class Executor {
                 return visitLoop(statementNode);
             case IF:
                 return visitIf(statementNode);
-            case SWITCH:
-                return visitSwitch(statementNode);
+            case CASE:
+                return visitCase(statementNode);
             case WRITE:
                 return visitWrite(statementNode);
             case WRITELN:
@@ -142,7 +142,7 @@ public class Executor {
         return null;
     }
 
-    private Object visitSwitch(Node switchNode) {
+    private Object visitCase(Node switchNode) {
         // Evaluate the expression.
         long value = (Long) visit(switchNode.children.get(0));
 
