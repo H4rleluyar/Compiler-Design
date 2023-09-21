@@ -144,7 +144,7 @@ public class Executor {
 
     private Object visitCase(Node switchNode) {
         // Evaluate the expression.
-        long value = (Long) visit(switchNode.children.get(0));
+        long value = ((Double)visit(switchNode.children.get(0))).longValue();
 
         // Loop over the SELECT_BRANCH subtrees to look for a value match.
         boolean foundMatch = false;
@@ -154,8 +154,15 @@ public class Executor {
 
             // Loop over the branch constants.
             for (Node constantNode : constantsNode.children) {
+                // Handle negative integer constants
+                // Normal:      SELECT_CONSTANT -> INTEGER_CONSTANT (actual value)
+                // Negative:    SELECT_CONSTANT -> NEGATE -> INTEGER_CONSTANT (positive, needs to be multiplied with -1)
+                long constantValue = constantNode.type == Node.NodeType.NEGATE
+                        ? (long) constantNode.getChildren().get(0).value * -1   // Constant is Negative
+                        : (long) constantNode.value;                            // Constant is Positive
+
                 // Match?
-                if (value == (long) constantNode.value) {
+                if (value == constantValue) {
                     Node stmtNode = branchNode.children.get(1);
                     visit(stmtNode);
 
@@ -164,6 +171,10 @@ public class Executor {
                 }
             }
         }
+
+        /*if (!foundMatch) {
+            // Do stuff if nothing was found
+        }*/
 
         return null;
     }

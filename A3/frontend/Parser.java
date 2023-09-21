@@ -264,7 +264,7 @@ public class Parser {
         }
 
         // while acceptable constant type (ordinal only) found
-        final Token.TokenType[] acceptableTokens = {
+        final Token.TokenType[] acceptableTokens = { // Lazy hack
                 Token.TokenType.PLUS,
                 Token.TokenType.MINUS,
                 Token.TokenType.INTEGER,
@@ -274,9 +274,10 @@ public class Parser {
 
             // New case branch node
             Node caseSelectBranch = new Node(Node.NodeType.SELECT_BRANCH);
+            Node caseConstant = new Node(Node.NodeType.SELECT_CONSTANTS); // Every branch must have a constant (used as key)
 
             // Parse single constant (same token used to check acceptable type)
-            caseSelectBranch.adopt(parseTerm());
+            caseConstant.adopt(parseTerm());
 
             // while COMMA found
             while (currentToken.type == Token.TokenType.COMMA) {
@@ -287,9 +288,10 @@ public class Parser {
                     semanticError("Wrong case branch constant type!");
                 }
                 else {
-                    caseSelectBranch.adopt(parseTerm());
+                    caseConstant.adopt(parseTerm());
                 }
             }
+            caseSelectBranch.adopt(caseConstant);
 
             // Assert COLON
             if (currentToken.type != Token.TokenType.COLON) {
