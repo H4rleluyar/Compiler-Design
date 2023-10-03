@@ -88,7 +88,7 @@ public class Parser {
         statementStarters.add(Token.TokenType.WRITELN);
         statementStarters.add(Token.TokenType.WHILE);
         statementStarters.add(Token.TokenType.IF);
-        statementStarters.add(FOR);
+        statementStarters.add(Token.TokenType.FOR);
         statementStarters.add(Token.TokenType.CASE);
 
         // Tokens that can immediately follow a statement.
@@ -202,6 +202,75 @@ public class Parser {
         }
 
         return ifNode;
+    }
+
+    private Node parseForStatement() {
+        // The current token should be FOR
+        Node compoundNode = new Node(COMPOUND);
+        currentToken = scanner.nextToken(); // consume FOR
+
+        // First assign node will have identifier, colon equals, and an expression
+        Node assignNode = parseAssignmentStatement();
+        compoundNode.adopt(assignNode);
+
+        Node loopNode = new Node(LOOP);
+        compoundNode.adopt(loopNode);
+
+        Node testNode = new Node(TEST);
+        loopNode.adopt((testNode));
+
+        boolean isTo = true;
+        Node opNode = null;
+
+        //Will be GT or LT node depending on TO or DOWNTO
+        if (currentToken.type == TO) {
+            opNode = new Node(Node.NodeType.GT);
+            currentToken = scanner.nextToken(); // consume TO
+        } else if (currentToken.type == DOWNTO) {
+            isTo = false;
+            opNode = new Node(Node.NodeType.LT);
+            currentToken = scanner.nextToken(); // consume DOWNTO
+        } else {
+            syntaxError("Expecting TO or DOWNTO");
+        }
+
+        // Copy the control variable
+        testNode.adopt(opNode);
+        assert opNode != null;
+        opNode.adopt(assignNode.getChildren().get(0).copy());
+
+        // Parse final value expression
+        Node finalValue = parseExpression();
+        opNode.adopt(finalValue);
+
+        if (currentToken.type != DO) {
+            syntaxError("Expecting DO");
+        }
+        currentToken = scanner.nextToken(); // consume DO
+
+        // Parse loop body
+        Node loopBody = parseStatement();
+        loopNode.adopt(loopBody);
+
+        // Adding the part to increment or decrement the control variable
+        Node assignBody = new Node(ASSIGN);
+        loopNode.adopt(assignBody);
+        assignBody.adopt(assignNode.getChildren().get(0).copy());
+
+        Node changeNode = null;
+        if (isTo) {
+            changeNode = new Node(ADD);
+        } else {
+            changeNode = new Node(SUBTRACT);
+        }
+
+        assignBody.adopt(changeNode);
+        changeNode.adopt(assignNode.getChildren().get(0).copy());
+        Node integerNode = new Node(INTEGER_CONSTANT);
+        integerNode.value = 1L; // increments or decrements by 1 (Long)
+        changeNode.adopt(integerNode);
+
+        return compoundNode;
     }
 
     private Node parseAssignmentStatement() {
