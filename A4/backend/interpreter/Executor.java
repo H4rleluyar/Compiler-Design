@@ -117,7 +117,7 @@ public class Executor extends Pcl4BaseVisitor<Object>
             }
         }
 
-        if (!branchFound) {
+        if (!branchFound && elseCtx != null) {
             visitStatementList(elseCtx);
         }
         return null;
