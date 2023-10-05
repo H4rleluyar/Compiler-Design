@@ -86,9 +86,9 @@ whileStatement : WHILE expression DO statement ;
 
 forStatement : FOR variable (ASSIGN expression | ':=') (expression (TO|DOWNTO) expression | TO expression) DO statement ;
 
-caseStatement : CASE expression OF caseBranch+ (ELSE statement)? END ;
+caseStatement : CASE expression OF caseBranch+ (ELSE statementList)? END ;
 
-caseBranch : caseLabel ':' statement (';' statement)* ;
+caseBranch : caseLabel ':' statementList ;
 
 caseLabel : expression (',' expression)* ;
 
