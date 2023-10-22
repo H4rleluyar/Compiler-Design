@@ -49,12 +49,12 @@ public class Converter extends PascalBaseVisitor<Object>
         // Execution timer and runtime standard input.
         code.indent();
         code.emitLine("private static java.util.Scanner _sysin = " +
-                      "new java.util.Scanner(System.in);");
+                "new java.util.Scanner(System.in);");
         code.emitLine();
 
         // Level 1 declarations.
         PascalParser.ProgramIdentifierContext idCtx =
-                                        ctx.programHeader().programIdentifier();
+                ctx.programHeader().programIdentifier();
         visit(ctx.block().declarations());
         emitUnnamedRecordDefinitions(idCtx.entry.getRoutineSymtab());
 
@@ -79,9 +79,9 @@ public class Converter extends PascalBaseVisitor<Object>
         code.emitLine();
         code.emitLine("java.time.Instant _end = java.time.Instant.now();");
         code.emitLine("long _elapsed = java.time.Duration." +
-                      "between(_start, _end).toMillis();");
+                "between(_start, _end).toMillis();");
         code.emitLine("System.out.printf(\"\\n[%,d milliseconds execution time.]" +
-                                         "\\n\", _elapsed);");
+                "\\n\", _elapsed);");
 
         code.dedent();
         code.emitLine("}");
@@ -108,7 +108,7 @@ public class Converter extends PascalBaseVisitor<Object>
 
     @Override
     public Object visitConstantDefinition(
-                                    PascalParser.ConstantDefinitionContext ctx)
+            PascalParser.ConstantDefinitionContext ctx)
     {
         PascalParser.ConstantIdentifierContext idCtx = ctx.constantIdentifier();
         PascalParser.ConstantContext constCtx = ctx.constant();
@@ -120,7 +120,7 @@ public class Converter extends PascalBaseVisitor<Object>
         code.emitStart();
         if (programVariables) code.emit("private static ");
         code.emitEnd("final " + javaTypeName + " " + constantName + " = "
-                              + constCtx.getText() + ";");
+                + constCtx.getText() + ";");
 
         return null;
     }
@@ -161,12 +161,12 @@ public class Converter extends PascalBaseVisitor<Object>
 
     @Override
     public Object visitEnumerationTypespec(
-                                    PascalParser.EnumerationTypespecContext ctx)
+            PascalParser.EnumerationTypespecContext ctx)
     {
         String separator = " {";
 
         for (PascalParser.EnumerationConstantContext constCtx :
-                                    ctx.enumerationType().enumerationConstant())
+                ctx.enumerationType().enumerationConstant())
         {
             code.emit(separator + constCtx.constantIdentifier().entry.getName());
             separator = ", ";
@@ -186,8 +186,8 @@ public class Converter extends PascalBaseVisitor<Object>
         for (SymtabEntry id : symtab.sortedEntries())
         {
             if (   (id.getKind() == TYPE)
-                && (id.getType().getForm() == RECORD)
-                && (id.getName().startsWith(Symtab.UNNAMED_PREFIX)))
+                    && (id.getType().getForm() == RECORD)
+                    && (id.getName().startsWith(Symtab.UNNAMED_PREFIX)))
             {
                 code.emitStart();
                 if (programVariables) code.emit("public static ");
@@ -226,7 +226,7 @@ public class Converter extends PascalBaseVisitor<Object>
     public Object visitRecordTypespec(PascalParser.RecordTypespecContext ctx)
     {
         PascalParser.RecordFieldsContext fieldsCtx =
-                                                ctx.recordType().recordFields();
+                ctx.recordType().recordFields();
         recordFields = true;
         visit(fieldsCtx.variableDeclarationsList());
         recordFields = false;
@@ -236,14 +236,14 @@ public class Converter extends PascalBaseVisitor<Object>
 
     @Override
     public Object visitVariableDeclarations(
-                                PascalParser.VariableDeclarationsContext ctx)
+            PascalParser.VariableDeclarationsContext ctx)
     {
         PascalParser.TypeSpecificationContext typeCtx = ctx.typeSpecification();
         PascalParser.VariableIdentifierListContext listCtx =
-                                                ctx.variableIdentifierList();
+                ctx.variableIdentifierList();
 
         for (PascalParser.VariableIdentifierContext varCtx :
-                                                listCtx.variableIdentifier())
+                listCtx.variableIdentifier())
         {
             code.emitStart();
             if (programVariables && !recordFields) code.emit("private static ");
@@ -318,12 +318,12 @@ public class Converter extends PascalBaseVisitor<Object>
 
     @Override
     public Object visitVariableIdentifierList(
-                                PascalParser.VariableIdentifierListContext ctx)
+            PascalParser.VariableIdentifierListContext ctx)
     {
         String separator = " ";
 
         for (PascalParser.VariableIdentifierContext varCtx :
-                                                    ctx.variableIdentifier())
+                ctx.variableIdentifier())
         {
             code.emit(separator);
             code.emit(varCtx.getText());
@@ -335,7 +335,7 @@ public class Converter extends PascalBaseVisitor<Object>
 
     @Override
     public Object visitRoutineDefinition(
-                                    PascalParser.RoutineDefinitionContext ctx)
+            PascalParser.RoutineDefinitionContext ctx)
     {
         PascalParser.FunctionHeadContext  funcCtx = ctx.functionHead();
         PascalParser.ProcedureHeadContext procCtx = ctx.procedureHead();
@@ -413,16 +413,16 @@ public class Converter extends PascalBaseVisitor<Object>
 
     @Override
     public Object visitParameterDeclarations(
-                                PascalParser.ParameterDeclarationsContext ctx)
+            PascalParser.ParameterDeclarationsContext ctx)
     {
         PascalParser.ParameterIdentifierListContext parmListCtx =
-                                                ctx.parameterIdentifierList();
+                ctx.parameterIdentifierList();
         PascalParser.TypeIdentifierContext typeCtx = ctx.typeIdentifier();
         Typespec parmType = typeCtx.type;
 
         // Loop over the parameters.
         for (PascalParser.ParameterIdentifierContext parmIdCtx :
-                                            parmListCtx.parameterIdentifier())
+                parmListCtx.parameterIdentifier())
         {
             code.emit(currentSeparator);
             code.split(60);
@@ -530,8 +530,8 @@ public class Converter extends PascalBaseVisitor<Object>
             variableName += "[" + subscript + "]";
 
             code.emitLine("for (int " + subscript + " = 0; " +
-                          subscript + " < " + elmtCount +
-                          "; " + subscript + "++)");
+                    subscript + " < " + elmtCount +
+                    "; " + subscript + "++)");
             code.emitStart("{");
             code.indent();
 
@@ -609,7 +609,7 @@ public class Converter extends PascalBaseVisitor<Object>
 
     @Override
     public Object visitCompoundStatement(
-                                    PascalParser.CompoundStatementContext ctx)
+            PascalParser.CompoundStatementContext ctx)
     {
         code.emit("{");
         code.indent();
@@ -622,7 +622,7 @@ public class Converter extends PascalBaseVisitor<Object>
 
     @Override
     public Object visitAssignmentStatement(
-                                    PascalParser.AssignmentStatementContext ctx)
+            PascalParser.AssignmentStatementContext ctx)
     {
         String lhs  = (String) visit(ctx.lhs().variable());
         String expr = (String) visit(ctx.rhs().expression());
@@ -657,7 +657,7 @@ public class Converter extends PascalBaseVisitor<Object>
     public Object visitExpression(PascalParser.ExpressionContext ctx)
     {
         PascalParser.SimpleExpressionContext simpleCtx1 =
-                                                ctx.simpleExpression().get(0);
+                ctx.simpleExpression().get(0);
         PascalParser.RelOpContext relOpCtx = ctx.relOp();
         String simpleText1 = (String) visit(simpleCtx1);
         String text = simpleText1;
@@ -671,15 +671,15 @@ public class Converter extends PascalBaseVisitor<Object>
             else if (op.equals("<>")) op = "!=";
 
             PascalParser.SimpleExpressionContext simpleCtx2 =
-                                                ctx.simpleExpression().get(1);
+                    ctx.simpleExpression().get(1);
             String simpleText2 = (String) visit(simpleCtx2);
 
             // Java uses the compareTo method for strings.
             if (simpleCtx1.type == Predefined.stringType)
             {
                 text =   "(" + simpleText1 + ")."
-                       + "compareTo(" + simpleText2 + ") "
-                       + op + " 0";
+                        + "compareTo(" + simpleText2 + ") "
+                        + op + " 0";
             }
             else
             {
@@ -760,7 +760,7 @@ public class Converter extends PascalBaseVisitor<Object>
         Typespec type = ctx.variableIdentifier().type;
 
         if (    (type != Predefined.booleanType)
-             && (variableId.getKind() == ENUMERATION_CONSTANT))
+                && (variableId.getKind() == ENUMERATION_CONSTANT))
         {
             variableName = type.getIdentifier().getName() + "." + variableName;
         }
@@ -772,7 +772,7 @@ public class Converter extends PascalBaseVisitor<Object>
             if (modCtx.indexList() != null)
             {
                 for (PascalParser.IndexContext indexCtx :
-                                                    modCtx.indexList().index())
+                        modCtx.indexList().index())
                 {
                     Typespec indexType = type.getArrayIndexType();
                     int minIndex = 0;
@@ -783,12 +783,12 @@ public class Converter extends PascalBaseVisitor<Object>
                     }
 
                     PascalParser.ExpressionContext exprCtx =
-                                                        indexCtx.expression();
+                            indexCtx.expression();
                     String expr = (String) visit(exprCtx);
                     String subscript =
-                          (minIndex == 0) ? expr
-                        : (minIndex < 0)  ? "(" + expr + ")+" + (-minIndex)
-                        :                   "(" + expr + ")-" + minIndex ;
+                            (minIndex == 0) ? expr
+                                    : (minIndex < 0)  ? "(" + expr + ")+" + (-minIndex)
+                                    :                   "(" + expr + ")-" + minIndex ;
 
                     variableName += "[" + subscript + "]";
 
@@ -847,7 +847,7 @@ public class Converter extends PascalBaseVisitor<Object>
 
     @Override
     public Object visitParenthesizedFactor(
-                                    PascalParser.ParenthesizedFactorContext ctx)
+            PascalParser.ParenthesizedFactorContext ctx)
     {
         return "(" + visit(ctx.expression()) + ")";
     }
@@ -934,25 +934,25 @@ public class Converter extends PascalBaseVisitor<Object>
                 if (fwCtx != null)
                 {
                     String sign = (   (fwCtx.sign() != null)
-                                   && (fwCtx.sign().getText().equals("-")))
-                                ? "-" : "";
+                            && (fwCtx.sign().getText().equals("-")))
+                            ? "-" : "";
                     format.append(sign)
-                          .append(fwCtx.integerConstant().getText());
+                            .append(fwCtx.integerConstant().getText());
 
                     PascalParser.DecimalPlacesContext dpCtx =
-                                                        fwCtx.decimalPlaces();
+                            fwCtx.decimalPlaces();
                     if (dpCtx != null)
                     {
                         format.append(".")
-                              .append(dpCtx.integerConstant().getText());
+                                .append(dpCtx.integerConstant().getText());
                     }
                 }
 
                 String typeFlag = type == Predefined.integerType ? "d"
-                                : type == Predefined.realType    ? "f"
-                                : type == Predefined.booleanType ? "b"
-                                : type == Predefined.charType    ? "c"
-                                :                                  "s";
+                        : type == Predefined.realType    ? "f"
+                        : type == Predefined.booleanType ? "b"
+                        : type == Predefined.charType    ? "c"
+                        :                                  "s";
                 format.append(typeFlag);
             }
         }
@@ -1054,9 +1054,9 @@ public class Converter extends PascalBaseVisitor<Object>
             else
             {
                 String typeName = type == Predefined.integerType ? "Int"
-                                : type == Predefined.realType    ? "Double"
-                                : type == Predefined.booleanType ? "Boolean"
-                                :                                  "";
+                        : type == Predefined.realType    ? "Double"
+                        : type == Predefined.booleanType ? "Boolean"
+                        :                                  "";
 
                 code.emit(varName + " = _sysin.next" + typeName + "();");
             }
@@ -1120,5 +1120,41 @@ public class Converter extends PascalBaseVisitor<Object>
         return null;
     }
 
+    @Override
+    public Object visitForStatement(PascalParser.ForStatementContext ctx) {
+        code.emit("for (");
 
+        String iden = (String) visit(ctx.variable());
+        code.emit(iden);
+        code.emit(" = ");
+
+        String idenExpr = (String) visit(ctx.expression(0));
+        code.emit(idenExpr);
+        code.emit("; ");
+        code.emit(iden);
+
+        if (ctx.TO() != null) {
+            code.emit(" <= ");
+        } else {
+            code.emit(" >= ");
+        }
+
+        String loopExpr = (String) visit(ctx.expression(1));
+        code.emit(loopExpr);
+        code.emit("; ");
+        code.emit(iden);
+
+        if (ctx.TO() != null) {
+            code.emit("++) {");
+        } else {
+            code.emit("--) {");
+        }
+
+        code.indent();
+        visit(ctx.statement());
+        code.dedent();
+        code.emitLine("}");
+
+        return null;
+    }
 }
