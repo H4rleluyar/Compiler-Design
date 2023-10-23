@@ -1175,7 +1175,7 @@ public class Converter extends PascalBaseVisitor<Object>
             for (int i = 1; i < ctx.argumentList().argument().size(); i++) {
                 code.emit(", ");
                 arg = (String) visit(ctx.argumentList().argument(i));
-                if ((ctx.argumentList().argument().get(i).isEmpty())) {
+                if (!(ctx.argumentList().argument(i).getText().contains("("))) {
                     code.emit(arg);
                 }
             }
