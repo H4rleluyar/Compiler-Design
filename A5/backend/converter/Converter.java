@@ -1177,4 +1177,73 @@ public class Converter extends PascalBaseVisitor<Object>
         code.emit(");");
         return null;
     }
+
+    @Override
+    public Object visitCaseStatement(PascalParser.CaseStatementContext ctx) {
+        code.emit("switch (");
+
+        String expression = (String) visit(ctx.expression());
+        code.emit(expression);
+        code.emit(") {");
+
+        visit(ctx.caseBranchList());
+        code.dedent();
+        code.emitLine("}");
+        return null;
+    }
+
+    @Override
+    public Object visitCaseBranchList(PascalParser.CaseBranchListContext ctx) {
+        code.indent();
+        // We ignore semicolon case dividers
+        for (Object childCtx:ctx.children) {
+            if (childCtx.getClass() == PascalParser.CaseBranchContext.class) {
+                visit((PascalParser.CaseBranchContext) childCtx);
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public Object visitCaseBranch(PascalParser.CaseBranchContext ctx) {
+        if (ctx.getChildCount() == 0) return null; // Ignore constantless branches
+
+        visit(ctx.caseConstantList());
+        code.indent();
+        code.emitStart();
+        visit(ctx.statement());
+        code.emitLine("break;");
+        code.dedent();
+        return null;
+    }
+
+    @Override
+    public Object visitCaseConstantList(PascalParser.CaseConstantListContext ctx) {
+
+        // We ignore commas
+        for (Object childCtx:ctx.children) {
+            if (childCtx.getClass() == PascalParser.CaseConstantContext.class) {
+                visit((PascalParser.CaseConstantContext) childCtx);
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public Object visitCaseConstant(PascalParser.CaseConstantContext ctx) {
+        PascalParser.ConstantContext child = (PascalParser.ConstantContext) ctx.getChild(0);
+        String constant = null;
+
+        // Decide if its a char or int
+        if (child.value.getClass() == Character.class) {
+            constant = "'" + ((PascalParser.ConstantContext) ctx.getChild(0)).value.toString() + "'";
+        }
+        else if (child.value.getClass() == Integer.class) {
+            constant = ((PascalParser.ConstantContext) ctx.getChild(0)).value.toString();
+        }
+
+        // Emit
+        code.emitLine("case " + constant + ": ");
+        return null;
+    }
 }
