@@ -8,6 +8,7 @@ import intermediate.symtab.SymtabEntry;
 import intermediate.type.Typespec;
 import intermediate.type.Typespec.Form;
 
+import java.util.ArrayList;
 import java.util.Hashtable;
 
 import static intermediate.symtab.SymtabEntry.Kind.*;
@@ -1165,12 +1166,18 @@ public class Converter extends PascalBaseVisitor<Object>
 
         if (ctx.argumentList() != null) {
             String arg = (String) visit(ctx.argumentList().argument(0));
-            code.emit(arg);
+            if ((ctx.argumentList().argument().get(0).isEmpty())) {
+                code.emit(arg);
+            } else {
+                code.emit(ctx.argumentList().argument().get(0).getText());
+            }
 
             for (int i = 1; i < ctx.argumentList().argument().size(); i++) {
                 code.emit(", ");
                 arg = (String) visit(ctx.argumentList().argument(i));
-                code.emit(arg);
+                if ((ctx.argumentList().argument().get(i).isEmpty())) {
+                    code.emit(arg);
+                }
             }
         }
 
@@ -1244,6 +1251,26 @@ public class Converter extends PascalBaseVisitor<Object>
 
         // Emit
         code.emitLine("case " + constant + ": ");
+        return null;
+    }
+
+    @Override
+    public Object visitFunctionCall(PascalParser.FunctionCallContext ctx) {
+        String functionName = ctx.functionName().getText();
+        code.emit(functionName + "(");
+
+        if (ctx.argumentList() != null) {
+            String arg = (String) visit(ctx.argumentList().argument(0));
+            code.emit(arg);
+
+            for (int i = 1; i < ctx.argumentList().argument().size(); i++) {
+                code.emit(", ");
+                arg = (String) visit(ctx.argumentList().argument(i));
+                code.emit(arg);
+            }
+        }
+
+        code.emitLine(")");
         return null;
     }
 }
