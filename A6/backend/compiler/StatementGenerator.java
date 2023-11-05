@@ -218,11 +218,27 @@ public class StatementGenerator extends CodeGenerator {
      */
     public void emitProcedureCall(PascalParser.ProcedureCallStatementContext ctx) {
         /***** Complete this method. *****/
-        String procedureName = ctx.procedureName().getText();
-        SymtabEntry procedureId = ctx.procedureName().entry;
-        PascalParser.ArgumentListContext argListCtx = ctx.argumentList();
-        emitCall(procedureId, argListCtx);
+        //String procedureName = ctx.procedureName().getText();
+        //SymtabEntry procedureId = ctx.procedureName().entry;
+        //PascalParser.ArgumentListContext argListCtx = ctx.argumentList();
+        //emitCall(procedureId, argListCtx);
 
+        SymtabEntry procedureId = ctx.procedureName().entry;
+        String procedureName = procedureId.getName();
+        String procedureParams = procedureName + "(";
+
+        PascalParser.ArgumentListContext argListCtx = ctx.argumentList();
+        if (ctx.argumentList() != null) {
+            compiler.visit(argListCtx);
+
+            for (int i = 0; i < ctx.argumentList().argument().size(); i++) {
+                procedureParams = procedureParams + typeDescriptor(procedureId.getRoutineParameters().get(i).getType());
+            }
+        }
+
+        procedureParams = procedureParams + ")" + typeDescriptor(procedureId);
+        emit(INVOKESTATIC, programName + "/" + procedureParams);
+        compiler.visit(ctx.procedureName());
     }
 
     /**
@@ -243,7 +259,7 @@ public class StatementGenerator extends CodeGenerator {
     private void emitCall(SymtabEntry routineId,
             PascalParser.ArgumentListContext argListCtx) {
         /***** Complete this method. *****/
-        String procName = routineId.getName();
+        /*String procName = routineId.getName();
         emit(INVOKESTATIC, programName + "/" + procName + "()V");
 
         if (argListCtx != null) {
@@ -251,7 +267,7 @@ public class StatementGenerator extends CodeGenerator {
                 compiler.visit(argCtx.expression());
                 emit(POP);
             }
-        }
+        }*/
     }
 
     /**
