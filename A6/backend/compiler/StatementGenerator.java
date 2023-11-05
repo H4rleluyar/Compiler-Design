@@ -167,8 +167,48 @@ public class StatementGenerator extends CodeGenerator {
      * 
      * @param ctx the ForStatementContext.
      */
-    public void emitFor(PascalParser.ForStatementContext ctx) {
+    public void emitFor(PascalParser.ForStatementContext ctx)
+    {
         /***** Complete this method. *****/
+        Label loopTopLabel = new Label();
+        Label loopExitLabel = new Label();
+        Label loopAgainLabel = new Label();
+        Label loopStopLabel = new Label();
+
+        compiler.visit(ctx.expression(0));
+        emit(PUTSTATIC, programName + "/" + ctx.variable().getText() + " " + typeDescriptor(ctx.variable().type));
+
+        emitLabel(loopTopLabel);
+        compiler.visit(ctx.variable());
+        compiler.visit(ctx.expression(1));
+
+        if (ctx.TO() != null) {
+            emit(IF_ICMPGT, loopStopLabel);
+        } else {
+            emit(IF_ICMPLT, loopStopLabel);
+        }
+
+        emit(ICONST_0);
+        emit(GOTO, loopAgainLabel);
+
+        emitLabel(loopStopLabel);
+        emit(ICONST_1);
+
+        emitLabel(loopAgainLabel);
+        emit(IFNE, loopExitLabel);
+        compiler.visit(ctx.statement());
+        compiler.visit(ctx.variable());
+        emit(ICONST_1);
+
+        if (ctx.TO() != null) {
+            emit(IADD);
+        } else {
+            emit(ISUB);
+        }
+        emit(PUTSTATIC, programName + "/" + ctx.variable().getText() + " " + typeDescriptor(ctx.variable().type));
+
+        emit(GOTO, loopTopLabel);
+        emitLabel(loopExitLabel);
     }
 
     /**
