@@ -255,22 +255,47 @@ public class StatementGenerator extends CodeGenerator {
      * 
      * @param ctx the ProcedureCallStatementContext.
      */
-    public void emitProcedureCall(PascalParser.ProcedureCallStatementContext ctx) {
+    public void emitProcedureCall(PascalParser.ProcedureCallStatementContext ctx)
+    {
         /***** Complete this method. *****/
-        //String procedureName = ctx.procedureName().getText();
-        //SymtabEntry procedureId = ctx.procedureName().entry;
-        //PascalParser.ArgumentListContext argListCtx = ctx.argumentList();
-        //emitCall(procedureId, argListCtx);
-
         SymtabEntry procedureId = ctx.procedureName().entry;
         String procedureName = procedureId.getName();
         String procedureParams = procedureName + "(";
 
         PascalParser.ArgumentListContext argListCtx = ctx.argumentList();
-        if (ctx.argumentList() != null) {
-            compiler.visit(argListCtx);
+        if (argListCtx != null) {
 
-            for (int i = 0; i < ctx.argumentList().argument().size(); i++) {
+            for (int i = 0; i < argListCtx.argument().size(); i++) {
+                compiler.visit(argListCtx.argument(i));
+
+                String argType = typeDescriptor(argListCtx.argument(i).expression().type);
+                String paramType = typeDescriptor(procedureId.getRoutineParameters().get(i).getType());
+
+                if (!argType.equals(paramType)) {
+                    if (paramType.equals("F")) {
+                        if (argType.equals("I")) {
+                            emit(I2F);
+                        } else if (argType.equals("D")){
+                            emit(D2F);
+                        }
+                    }
+
+                    if (paramType.equals("D")) {
+                        if (argType.equals("I")) {
+                            emit(I2D);
+                        } else if (argType.equals("F")){
+                            emit(F2D);
+                        }
+                    }
+
+                    if (paramType.equals("C") && argType.equals("I")) {
+                        emit(I2C);
+                    }
+
+                    if (paramType.equals("I") && argType.equals("F")) {
+                        emit(F2I);
+                    }
+                }
                 procedureParams = procedureParams + typeDescriptor(procedureId.getRoutineParameters().get(i).getType());
             }
         }
@@ -282,21 +307,21 @@ public class StatementGenerator extends CodeGenerator {
 
     /**
      * Emit code for a function call statement.
-     * 
      * @param ctx the FunctionCallContext.
      */
-    public void emitFunctionCall(PascalParser.FunctionCallContext ctx) {
+    public void emitFunctionCall(PascalParser.FunctionCallContext ctx)
+    {
         /***** Complete this method. *****/
     }
 
     /**
      * Emit a call to a procedure or a function.
-     * 
-     * @param routineId  the routine name's symbol table entry.
+     * @param routineId the routine name's symbol table entry.
      * @param argListCtx the ArgumentListContext.
      */
     private void emitCall(SymtabEntry routineId,
-            PascalParser.ArgumentListContext argListCtx) {
+                          PascalParser.ArgumentListContext argListCtx)
+    {
         /***** Complete this method. *****/
         /*String procName = routineId.getName();
         emit(INVOKESTATIC, programName + "/" + procName + "()V");
