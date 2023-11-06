@@ -6,6 +6,8 @@ import intermediate.symtab.SymtabEntry;
 import intermediate.type.Typespec;
 import intermediate.type.Typespec.Form;
 
+import java.util.HashMap;
+
 import static backend.compiler.Instruction.*;
 import static intermediate.type.Typespec.Form.ENUMERATION;
 import static intermediate.type.Typespec.Form.SCALAR;
@@ -119,7 +121,44 @@ public class StatementGenerator extends CodeGenerator {
      * @param ctx the CaseStatementContext.
      */
     public void emitCase(PascalParser.CaseStatementContext ctx) {
-        /***** Complete this method. *****/
+        /***** Complete this method. *****/ // Jerry
+        HashMap<Label, PascalParser.StatementContext> jumpBranches = new HashMap();
+
+        // Constant expression
+        compiler.visit(ctx.expression());
+        emit(ILOAD_0);
+
+        // Jump switch map
+        emit(LOOKUPSWITCH);
+        Label defaultLabel = new Label();
+        for (Object branch : ctx.caseBranchList().children) {
+            if (branch.getClass() == PascalParser.CaseBranchContext.class) {
+                PascalParser.CaseConstantListContext constantListContext = ((PascalParser.CaseBranchContext) branch).caseConstantList();
+                if (constantListContext == null) continue;
+                Label branchLabel = new Label();
+
+                // Write all constants under one branch
+                for (Object constant : constantListContext.children) {
+                    if (constant.getClass() == PascalParser.CaseConstantContext.class) {
+                        PascalParser.ConstantContext constantContext = ((PascalParser.CaseConstantContext) constant).constant();
+                        emitLabel(constantContext.value.toString(), branchLabel);
+                    }
+                }
+                jumpBranches.put(branchLabel, ((PascalParser.CaseBranchContext) branch).statement());
+            }
+        }
+        emitLabel("default", defaultLabel);
+
+        // Jump Target Label with statements
+        for (Label label : jumpBranches.keySet()) {
+            emitLabel(label);
+            compiler.visit(jumpBranches.get(label));
+            emit(GOTO, defaultLabel); // skip to default so we don't fall through I think?
+        }
+
+        // Default
+        // I tested parsing a dangle default statement and it gave an error so I'll assume we don't care about it in compilation.
+        emitLabel(defaultLabel);
     }
 
     /**
