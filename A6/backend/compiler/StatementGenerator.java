@@ -311,7 +311,23 @@ public class StatementGenerator extends CodeGenerator {
      */
     public void emitFunctionCall(PascalParser.FunctionCallContext ctx)
     {
-        /***** Complete this method. *****/
+        SymtabEntry functionId = ctx.functionCall().entry;
+
+        if (functionId.getName().equals("WRITE") || functionId.getName().equals("WRITELN")) {
+            // Handle WRITE and WRITELN statements.
+            emitWrite(ctx.writeArguments(), functionId.getName().equals("WRITELN"));
+        } else if (functionId.getName().equals("READ") || functionId.getName().equals("READLN")) {
+            // Handle READ and READLN statements.
+            emitRead(ctx.readArguments(), functionId.getName().equals("READLN"));
+        } else {
+            // This is a user-defined function call.
+            emitCall(functionId, ctx.argumentList());
+
+            // If the function has a return value, store it in a temporary variable.
+            if (functionId.getType() != Predefined.voidType) {
+                emitStoreValue(ctx, functionId.getType());
+            }
+        }
     }
 
     /**
@@ -322,16 +338,32 @@ public class StatementGenerator extends CodeGenerator {
     private void emitCall(SymtabEntry routineId,
                           PascalParser.ArgumentListContext argListCtx)
     {
-        /***** Complete this method. *****/
-        /*String procName = routineId.getName();
-        emit(INVOKESTATIC, programName + "/" + procName + "()V");
+        String routineName = routineId.getName();
+        String routineDescriptor = typeDescriptor(routineId);
+        String invokeInstruction = routineId.getType() == Predefined.voidType ? "INVOKESTATIC" : "INVOKEVIRTUAL";
 
+        // Load any arguments.
         if (argListCtx != null) {
-            for (PascalParser.ArgumentContext argCtx : argListCtx.argument()) {
-                compiler.visit(argCtx.expression());
-                emit(POP);
+            for (int i = 0; i < argListCtx.argument().size(); i++) {
+                compiler.visit(argListCtx.argument(i));
+
+                // Convert argument type to match the function parameter type if necessary.
+                String argType = typeDescriptor(argListCtx.argument(i).expression().type);
+                String paramType = typeDescriptor(routineId.getRoutineParameters().get(i).getType());
+
+                if (!argType.equals(paramType)) {
+                    handleTypeConversion(argType, paramType);
+                }
             }
-        }*/
+        }
+
+        // Emit the function call instruction.
+        emit(invokeInstruction, programName + "/" + routineName + routineDescriptor);
+
+        // Load the result of the function call if it has a return value.
+        if (routineId.getType() != Predefined.voidType) {
+            emitLoadValue(routineId.getType());
+        }
     }
 
     /**
