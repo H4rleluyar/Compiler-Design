@@ -6,6 +6,8 @@ import intermediate.symtab.SymtabEntry;
 import intermediate.type.Typespec;
 import intermediate.type.Typespec.Form;
 
+import java.util.HashMap;
+
 import static backend.compiler.Instruction.*;
 import static intermediate.type.Typespec.Form.ENUMERATION;
 import static intermediate.type.Typespec.Form.SCALAR;
@@ -27,7 +29,7 @@ import static intermediate.type.Typespec.Form.SCALAR;
 public class StatementGenerator extends CodeGenerator {
     /**
      * Constructor.
-     * 
+     *
      * @param parent   the parent generator.
      * @param compiler the compiler to use.
      */
@@ -37,7 +39,7 @@ public class StatementGenerator extends CodeGenerator {
 
     /**
      * Emit code for an assignment statement.
-     * 
+     *
      * @param ctx the AssignmentStatementContext.
      */
     public void emitAssignment(PascalParser.AssignmentStatementContext ctx) {
@@ -85,7 +87,7 @@ public class StatementGenerator extends CodeGenerator {
 
     /**
      * Emit code for an IF statement.
-     * 
+     *
      * @param ctx the IfStatementContext.
      */
     public void emitIf(PascalParser.IfStatementContext ctx) {
@@ -115,16 +117,57 @@ public class StatementGenerator extends CodeGenerator {
 
     /**
      * Emit code for a CASE statement.
-     * 
+     *
      * @param ctx the CaseStatementContext.
      */
     public void emitCase(PascalParser.CaseStatementContext ctx) {
-        /***** Complete this method. *****/
+        /***** Complete this method. *****/ // Jerry
+        HashMap<Label, PascalParser.StatementContext> jumpBranches = new HashMap();
+
+        // Constant expression
+        compiler.visit(ctx.expression());
+        emit(ILOAD_0);
+
+        // Jump switch map
+        emit(LOOKUPSWITCH);
+        Label defaultLabel = new Label();
+        for (Object branch : ctx.caseBranchList().children) {
+            if (branch.getClass() == PascalParser.CaseBranchContext.class) {
+                PascalParser.CaseConstantListContext constantListContext = ((PascalParser.CaseBranchContext) branch)
+                        .caseConstantList();
+                if (constantListContext == null)
+                    continue;
+                Label branchLabel = new Label();
+
+                // Write all constants under one branch
+                for (Object constant : constantListContext.children) {
+                    if (constant.getClass() == PascalParser.CaseConstantContext.class) {
+                        PascalParser.ConstantContext constantContext = ((PascalParser.CaseConstantContext) constant)
+                                .constant();
+                        emitLabel(constantContext.value.toString(), branchLabel);
+                    }
+                }
+                jumpBranches.put(branchLabel, ((PascalParser.CaseBranchContext) branch).statement());
+            }
+        }
+        emitLabel("default", defaultLabel);
+
+        // Jump Target Label with statements
+        for (Label label : jumpBranches.keySet()) {
+            emitLabel(label);
+            compiler.visit(jumpBranches.get(label));
+            emit(GOTO, defaultLabel); // skip to default so we don't fall through I think?
+        }
+
+        // Default
+        // I tested parsing a dangle default statement and it gave an error so I'll
+        // assume we don't care about it in compilation.
+        emitLabel(defaultLabel);
     }
 
     /**
      * Emit code for a REPEAT statement.
-     * 
+     *
      * @param ctx the RepeatStatementContext.
      */
     public void emitRepeat(PascalParser.RepeatStatementContext ctx) {
@@ -143,7 +186,7 @@ public class StatementGenerator extends CodeGenerator {
 
     /**
      * Emit code for a WHILE statement.
-     * 
+     *
      * @param ctx the WhileStatementContext.
      */
     public void emitWhile(PascalParser.WhileStatementContext ctx) {
@@ -164,25 +207,114 @@ public class StatementGenerator extends CodeGenerator {
 
     /**
      * Emit code for a FOR statement.
-     * 
+     *
      * @param ctx the ForStatementContext.
      */
     public void emitFor(PascalParser.ForStatementContext ctx) {
         /***** Complete this method. *****/
+        Label loopTopLabel = new Label();
+        Label loopExitLabel = new Label();
+        Label loopAgainLabel = new Label();
+        Label loopStopLabel = new Label();
+
+        compiler.visit(ctx.expression(0));
+
+        if (ctx.variable().entry.getSlotNumber() != 0) {
+            emit(ISTORE, ctx.variable().entry.getSlotNumber());
+        } else {
+            emit(PUTSTATIC, programName + "/" + ctx.variable().getText() + " " + typeDescriptor(ctx.variable().type));
+        }
+
+        emitLabel(loopTopLabel);
+        compiler.visit(ctx.variable());
+        compiler.visit(ctx.expression(1));
+
+        if (ctx.TO() != null) {
+            emit(IF_ICMPGT, loopStopLabel);
+        } else {
+            emit(IF_ICMPLT, loopStopLabel);
+        }
+
+        emit(ICONST_0);
+        emit(GOTO, loopAgainLabel);
+
+        emitLabel(loopStopLabel);
+        emit(ICONST_1);
+
+        emitLabel(loopAgainLabel);
+        emit(IFNE, loopExitLabel);
+        compiler.visit(ctx.statement());
+        compiler.visit(ctx.variable());
+        emit(ICONST_1);
+
+        if (ctx.TO() != null) {
+            emit(IADD);
+        } else {
+            emit(ISUB);
+        }
+
+        if (ctx.variable().entry.getSlotNumber() != 0) {
+            emit(ISTORE, ctx.variable().entry.getSlotNumber());
+        } else {
+            emit(PUTSTATIC, programName + "/" + ctx.variable().getText() + " " + typeDescriptor(ctx.variable().type));
+        }
+
+        emit(GOTO, loopTopLabel);
+        emitLabel(loopExitLabel);
     }
 
     /**
      * Emit code for a procedure call statement.
-     * 
+     *
      * @param ctx the ProcedureCallStatementContext.
      */
     public void emitProcedureCall(PascalParser.ProcedureCallStatementContext ctx) {
         /***** Complete this method. *****/
-        String procedureName = ctx.procedureName().getText();
         SymtabEntry procedureId = ctx.procedureName().entry;
-        PascalParser.ArgumentListContext argListCtx = ctx.argumentList();
-        emitCall(procedureId, argListCtx);
+        String procedureName = procedureId.getName();
+        String procedureParams = procedureName + "(";
 
+        PascalParser.ArgumentListContext argListCtx = ctx.argumentList();
+        if (argListCtx != null) {
+
+            for (int i = 0; i < argListCtx.argument().size(); i++) {
+                compiler.visit(argListCtx.argument(i));
+
+                String argType = typeDescriptor(argListCtx.argument(i).expression().type);
+                String paramType = typeDescriptor(procedureId.getRoutineParameters().get(i).getType());
+
+                if (!argType.equals(paramType)) {
+                    if (paramType.equals("F")) {
+                        if (argType.equals("I")) {
+                            emit(I2F);
+                        } else if (argType.equals("D")) {
+                            emit(D2F);
+                        }
+                    }
+
+                    if (paramType.equals("D")) {
+                        if (argType.equals("I")) {
+                            emit(I2D);
+                        } else if (argType.equals("F")) {
+                            emit(F2D);
+                        }
+                    }
+
+                    if (paramType.equals("C") && argType.equals("I")) {
+                        emit(I2C);
+                    }
+
+                    if (paramType.equals("I") && argType.equals("F")) {
+                        emit(F2I);
+                    }
+                }
+                procedureParams = procedureParams + typeDescriptor(procedureId.getRoutineParameters().get(i).getType());
+            }
+        }
+
+        procedureParams = procedureParams + ")" + typeDescriptor(procedureId);
+        emit(INVOKESTATIC, programName + "/" + procedureParams);
+        compiler.visit(ctx.procedureName());
     }
 
     /**
@@ -191,7 +323,48 @@ public class StatementGenerator extends CodeGenerator {
      * @param ctx the FunctionCallContext.
      */
     public void emitFunctionCall(PascalParser.FunctionCallContext ctx) {
-        /***** Complete this method. *****/
+        SymtabEntry functionId = ctx.functionName().entry;
+        String functionName = functionId.getName();
+        String functionParams = functionName + "(";
+
+        PascalParser.ArgumentListContext argListCtx = ctx.argumentList();
+        if (argListCtx != null) {
+            for (int i = 0; i < argListCtx.argument().size(); i++) {
+                compiler.visit(argListCtx.argument(i));
+                String argType = typeDescriptor(argListCtx.argument(i).expression().type);
+                String paramType = typeDescriptor(functionId.getRoutineParameters().get(i).getType());
+
+                if (!argType.equals(paramType)) {
+                  
+                    if (paramType.equals("F") && argType.equals("I")) {
+                        emit(I2F);
+                    } else if (paramType.equals("D") && argType.equals("I")) {
+                        emit(I2D);
+                    } else if (paramType.equals("D") && argType.equals("F")) {
+                        emit(F2D);
+                       
+                    }
+                }
+
+                functionParams = functionParams + typeDescriptor(functionId.getRoutineParameters().get(i).getType());
+            }
+        }
+
+        functionParams = functionParams + ")" + typeDescriptor(functionId);
+
+        // Emit the function call
+        emit(INVOKESTATIC, programName + "/" + functionParams);
+
+        if (ctx.getParent() instanceof PascalParser.AssignmentStatementContext) {
+            // if the function call is part of an assignment statement, store the return
+        
+            PascalParser.AssignmentStatementContext assignmentCtx = (PascalParser.AssignmentStatementContext) ctx
+                    .getParent();
+            PascalParser.VariableContext varCtx = assignmentCtx.lhs().variable();
+            Typespec varType = varCtx.type;
+            SymtabEntry varId = varCtx.entry;
+            emitStoreValue(varId, varType);
+        }
     }
 
     /**
@@ -199,24 +372,16 @@ public class StatementGenerator extends CodeGenerator {
      * 
      * @param routineId  the routine name's symbol table entry.
      * @param argListCtx the ArgumentListContext.
+     *
      */
     private void emitCall(SymtabEntry routineId,
             PascalParser.ArgumentListContext argListCtx) {
-        /***** Complete this method. *****/
-        String procName = routineId.getName();
-        emit(INVOKESTATIC, programName + "/" + procName + "()V");
-
-        if (argListCtx != null) {
-            for (PascalParser.ArgumentContext argCtx : argListCtx.argument()) {
-                compiler.visit(argCtx.expression());
-                emit(POP);
-            }
-        }
+        // no need for this because emitProcedure and emitFunction handles it already.
     }
 
     /**
      * Emit code for a WRITE statement.
-     * 
+     *
      * @param ctx the WriteStatementContext.
      */
     public void emitWrite(PascalParser.WriteStatementContext ctx) {
@@ -225,7 +390,7 @@ public class StatementGenerator extends CodeGenerator {
 
     /**
      * Emit code for a WRITELN statement.
-     * 
+     *
      * @param ctx the WritelnStatementContext.
      */
     public void emitWriteln(PascalParser.WritelnStatementContext ctx) {
@@ -234,7 +399,7 @@ public class StatementGenerator extends CodeGenerator {
 
     /**
      * Emit code for a call to WRITE or WRITELN.
-     * 
+     *
      * @param argsCtx the WriteArgumentsContext.
      * @param needLF  true if need a line feed.
      */
@@ -275,7 +440,7 @@ public class StatementGenerator extends CodeGenerator {
 
     /**
      * Create the printf format string.
-     * 
+     *
      * @param argsCtx the WriteArgumentsContext.
      * @param format  the format string to create.
      * @return the count of expression arguments.
@@ -332,7 +497,7 @@ public class StatementGenerator extends CodeGenerator {
 
     /**
      * Emit the printf arguments array.
-     * 
+     *
      * @param argsCtx
      * @param exprCount
      */
@@ -372,7 +537,7 @@ public class StatementGenerator extends CodeGenerator {
 
     /**
      * Emit code for a READ statement.
-     * 
+     *
      * @param ctx the ReadStatementContext.
      */
     public void emitRead(PascalParser.ReadStatementContext ctx) {
@@ -381,7 +546,7 @@ public class StatementGenerator extends CodeGenerator {
 
     /**
      * Emit code for a READLN statement.
-     * 
+     *
      * @param ctx the ReadlnStatementContext.
      */
     public void emitReadln(PascalParser.ReadlnStatementContext ctx) {
@@ -390,7 +555,7 @@ public class StatementGenerator extends CodeGenerator {
 
     /**
      * Generate code for a call to READ or READLN.
-     * 
+     *
      * @param argsCtx  the ReadArgumentsContext.
      * @param needSkip true if need to skip the rest of the input line.
      */
