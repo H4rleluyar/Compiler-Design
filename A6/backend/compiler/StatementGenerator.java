@@ -215,7 +215,12 @@ public class StatementGenerator extends CodeGenerator {
         Label loopStopLabel = new Label();
 
         compiler.visit(ctx.expression(0));
-        emit(PUTSTATIC, programName + "/" + ctx.variable().getText() + " " + typeDescriptor(ctx.variable().type));
+
+        if (ctx.variable().entry.getSlotNumber() != 0) {
+            emit(ISTORE, ctx.variable().entry.getSlotNumber());
+        } else {
+            emit(PUTSTATIC, programName + "/" + ctx.variable().getText() + " " + typeDescriptor(ctx.variable().type));
+        }
 
         emitLabel(loopTopLabel);
         compiler.visit(ctx.variable());
@@ -244,7 +249,12 @@ public class StatementGenerator extends CodeGenerator {
         } else {
             emit(ISUB);
         }
-        emit(PUTSTATIC, programName + "/" + ctx.variable().getText() + " " + typeDescriptor(ctx.variable().type));
+
+        if (ctx.variable().entry.getSlotNumber() != 0) {
+            emit(ISTORE, ctx.variable().entry.getSlotNumber());
+        } else {
+            emit(PUTSTATIC, programName + "/" + ctx.variable().getText() + " " + typeDescriptor(ctx.variable().type));
+        }
 
         emit(GOTO, loopTopLabel);
         emitLabel(loopExitLabel);
