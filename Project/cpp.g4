@@ -1,28 +1,24 @@
 grammar cpp;
 
 //the ? just means that i can incldue it or not include it.
+//* means i can include it any number of time
 
-maintoRun: include* intMain* classDeclaration* functionDeclaration*;
+program: include* intMain? functionDeclaration* numberVariableDeclaration* expression* EOF;
 
-include: '#include' '<' Identifier ('.' Identifier)? '>';
+include: '#include' '<' Identifier ('.' Identifier)? '>'; //include libraries and stuff
+intMain: 'int' 'main' '(' ')' '{' statement* '}';  //int main
 
-classDeclaration: 'class' Identifier '{' member* '};';
+functionDeclaration: Identifier Identifier '(' parameterList? ')' '{' statement* '}'; //improve this later
 
-intMain: 'int' 'main' '(' ')' '{' statement* '}';
-
-functionDeclaration: Identifier Identifier '(' parameterList? ')' '{' statement* '}';
-
-member: Type Identifier ';';
+numberVariableDeclaration: Type Identifier '=' Number ';';
 
 parameterList: parameter (',' parameter)*;
 
 parameter: Type Identifier;
 
-statement: printStatement | variableDeclaration | assignment | functionCall | conditional | loop; // add more statements later
+statement: printStatement | numberVariableDeclaration | assignment | functionCall | conditional | loop; // add more statements later
 
-Type: 'int' | 'float' | 'char' | 'string'; //add more elements here later
-
-variableDeclaration: Type Identifier '=' expression ';'; //NOT sure why this isnt working
+Type: 'int' | 'float' | 'char' | 'double'; //add more elements here later
 
 assignment: Identifier '=' expression ';';
 
@@ -30,12 +26,20 @@ functionCall: Identifier '(' argumentList? ')' ';';
 
 argumentList: expression (',' expression)*;
 
-conditional: 'if' '(' condition ')' '{' statement* '}' ('else' statement)?;
+conditional: 'if' '(' condition ')' '{' statement* '}' ( 'else' 'if' '(' condition ')' '{' statement* '}' )* ( 'else' '{' statement* '}' )?;
+
 
 loop: 'for' '(' expression? ';' condition? ';' expression? ')' '{' statement* '}'
-    | 'while' '(' condition ')' '{' statement* '}';
+    | 'while' '(' condition ')' '{' statement* '}'; //rework the for loop later
 
+expression: expression '*' expression
+| expression '+' expression
+| Identifier
+| Number
+| String
+| expression ('==' | '!=' | '<' | '<=' | '>' | '>=') expression;
 
+/*Token */
 fragment A : ('a' | 'A') ;
 fragment B : ('b' | 'B') ;
 fragment C : ('c' | 'C') ;
@@ -63,12 +67,9 @@ fragment X : ('x' | 'X') ;
 fragment Y : ('y' | 'Y') ;
 fragment Z : ('z' | 'Z') ;
 
-String: '"' ~['"\r\n']* '"';
-
-expression: Identifier | Number | String | '(' expression ')' | expression ('==' | '!=' | '<' | '<=' | '>' | '>=') expression;
-
+String: '"' .*? '"' ;
 Identifier: [a-zA-Z_][a-zA-Z0-9_]* ;
-Number: [0-9]+;
+Number: '0' |'-'?[1-9][0-9]*;
 
 condition: expression ('==' | '!=' | '<' | '<=' | '>' | '>=') expression;
 
@@ -79,6 +80,6 @@ Comment: '//' ~[\r\n]* -> skip;  // use so the that // just means comment
 
 //use this to ignore white line and spaces
 NEWLINE : '\r'? '\n' -> skip  ;
-WS      : [ \t]+ -> skip ;
+WS      : [ \t\n]+ -> skip ;
 
 
