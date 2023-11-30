@@ -114,7 +114,7 @@ lhs locals [ Typespec type = null ]
     : variable ;
 rhs : expression ;
 
-ifStatement : IF '(' expression ')' trueStatement (ELSE falseStatement )?;
+ifStatement : IF '(' expression ')' '{' trueStatement '}' (ELSE '{' falseStatement '}')?;
 trueStatement  : statement ;
 falseStatement : statement ;
 
@@ -143,7 +143,7 @@ procedureName   locals [ SymtabEntry entry = null ]
 argumentList : argument ( ',' argument )* ;
 argument     : expression ;
 
-writeStatement   : COUT writeArguments ;
+writeStatement   : COUT writeArguments ';';
 writelnStatement : WRITELN writeArguments? ;
 writeArguments   : '<<' writeArgument (',' writeArgument)* ;
 writeArgument    : expression (':' fieldWidth)? ;
@@ -191,7 +191,6 @@ number          : sign? unsignedNumber ;
 unsignedNumber  : integerConstant | realConstant ;
 integerConstant : INTEGER ;
 realConstant    : REAL;
-
 characterConstant : CHARACTER ;
 stringConstant    : STRING ;
 
@@ -279,7 +278,3 @@ fragment CHARACTER_CHAR : ~('\'')   // any non-quote character
 fragment STRING_CHAR : QUOTE QUOTE  // two consecutive quotes
                      | ~('\'')      // any non-quote character
                      ;
-
-COMMENT : '{' COMMENT_CHARACTER* '}' -> skip ;
-
-fragment COMMENT_CHARACTER : ~('}') ;
