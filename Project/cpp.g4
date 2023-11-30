@@ -1,45 +1,204 @@
 grammar cpp;
 
-//the ? just means that i can incldue it or not include it.
-//* means i can include it any number of time
+@header {
+    package antlr4;
+    import java.util.HashMap;
+    import intermediate.symtab.SymtabEntry;
+    import intermediate.type.Typespec;
+}
 
-program: include* intMain? functionDeclaration* numberVariableDeclaration* expression* EOF;
+program           : programHeader block '.' ;
+programHeader     : PROGRAM programIdentifier programParameters? ';' ;
+programParameters : '(' IDENTIFIER ( ',' IDENTIFIER )* ')' ;
 
-include: '#include' '<' Identifier ('.' Identifier)? '>'; //include libraries and stuff
-intMain: 'int' 'main' '(' ')' '{' statement* '}';  //int main
+programIdentifier   locals [ SymtabEntry entry = null ]
+    : IDENTIFIER ;
 
-functionDeclaration: Identifier Identifier '(' parameterList? ')' '{' statement* '}'; //improve this later
+block         : declarations compoundStatement ;
+declarations  : ( constantsPart ';' )? ( typesPart ';' )?
+              ( variablesPart ';' )? ( routinesPart ';')? ;
 
-numberVariableDeclaration: Type Identifier '=' Number ';';
+variablesPart            : VAR variableDeclarationsList ;
+variableDeclarationsList : variableDeclarations ( ';' variableDeclarations )* ;
+variableDeclarations     : variableIdentifierList ':' typeSpecification ;
+variableIdentifierList   : variableIdentifier ( ',' variableIdentifier )* ;
 
-parameterList: parameter (',' parameter)*;
-
-parameter: Type Identifier;
-
-statement: printStatement | numberVariableDeclaration | assignment | functionCall | conditional | loop; // add more statements later
-
-Type: 'int' | 'float' | 'char' | 'double'; //add more elements here later
-
-assignment: Identifier '=' expression ';';
-
-functionCall: Identifier '(' argumentList? ')' ';';
-
-argumentList: expression (',' expression)*;
-
-conditional: 'if' '(' condition ')' '{' statement* '}' ( 'else' 'if' '(' condition ')' '{' statement* '}' )* ( 'else' '{' statement* '}' )?;
+variableIdentifier  locals [ Typespec type = null, SymtabEntry entry = null ]
+    : IDENTIFIER ;
 
 
-loop: 'for' '(' expression? ';' condition? ';' expression? ')' '{' statement* '}'
-    | 'while' '(' condition ')' '{' statement* '}'; //rework the for loop later
+constantsPart           : CONST constantDefinitionsList ;
+constantDefinitionsList : constantDefinition ( ';' constantDefinition )* ;
+constantDefinition      : constantIdentifier '=' constant ;
 
-expression: expression '*' expression
-| expression '+' expression
-| Identifier
-| Number
-| String
-| expression ('==' | '!=' | '<' | '<=' | '>' | '>=') expression;
+constantIdentifier  locals [ Typespec type = null, SymtabEntry entry = null ]
+    : IDENTIFIER ;
 
-/*Token */
+constant            locals [ Typespec type = null, Object value = null ]
+    : sign? ( IDENTIFIER | unsignedNumber )
+    | characterConstant
+    | stringConstant
+    ;
+
+sign : '-' | '+' ;
+
+typesPart           : TYPE typeDefinitionsList ;
+typeDefinitionsList : typeDefinition ( ';' typeDefinition )* ;
+typeDefinition      : typeIdentifier '=' typeSpecification ;
+
+typeIdentifier      locals [ Typespec type = null, SymtabEntry entry = null ]
+    : IDENTIFIER ;
+
+typeSpecification   locals [ Typespec type = null ]
+    : simpleType        # simpleTypespec
+    | arrayType         # arrayTypespec
+    | recordType        # recordTypespec
+    ;
+
+simpleType          locals [ Typespec type = null ]
+    : typeIdentifier    # typeIdentifierTypespec
+    | enumerationType   # enumerationTypespec
+    | subrangeType      # subrangeTypespec
+    ;
+
+enumerationType     : '(' enumerationConstant ( ',' enumerationConstant )* ')' ;
+enumerationConstant : constantIdentifier ;
+subrangeType        : constant '..' constant ;
+
+arrayType
+    : ARRAY '[' arrayDimensionList ']' OF typeSpecification ;
+arrayDimensionList : simpleType ( ',' simpleType )* ;
+
+recordType          locals [ SymtabEntry entry = null ]
+    : RECORD recordFields ';'? END ;
+recordFields : variableDeclarationsList ;
+
+routinesPart      : routineDefinition ( ';' routineDefinition)* ;
+routineDefinition : ( procedureHead | functionHead ) ';' block ;
+procedureHead     : PROCEDURE routineIdentifier parameters? ;
+functionHead      : FUNCTION  routineIdentifier parameters? ':' typeIdentifier ;
+
+routineIdentifier   locals [ Typespec type = null, SymtabEntry entry = null ]
+    : IDENTIFIER ;
+
+parameters                : '(' parameterDeclarationsList ')' ;
+parameterDeclarationsList : parameterDeclarations ( ';' parameterDeclarations )* ;
+parameterDeclarations     : VAR? parameterIdentifierList ':' typeIdentifier ;
+parameterIdentifierList   : parameterIdentifier ( ',' parameterIdentifier )* ;
+
+parameterIdentifier   locals [ Typespec type = null, SymtabEntry entry = null ]
+    : IDENTIFIER ;
+
+statement : compoundStatement
+          | assignmentStatement
+          | ifStatement
+          | caseStatement
+          | repeatStatement
+          | whileStatement
+          | forStatement
+          | writeStatement
+          | writelnStatement
+          | readStatement
+          | readlnStatement
+          | procedureCallStatement
+          | emptyStatement
+          ;
+
+compoundStatement : INTMAIN statementList END ;
+emptyStatement : ;
+
+statementList       : statement ( ';' statement )* ;
+assignmentStatement : lhs ':=' rhs ;
+
+lhs locals [ Typespec type = null ]
+    : variable ;
+rhs : expression ;
+
+ifStatement : IF '(' expression ')' trueStatement (ELSE falseStatement )?;
+trueStatement  : statement ;
+falseStatement : statement ;
+
+caseStatement
+    locals [ HashMap<Integer, cppParser.StatementContext> jumpTable = null ]
+    : CASE expression OF caseBranchList END ;
+
+caseBranchList   : caseBranch ( ';' caseBranch )* ;
+caseBranch       : caseConstantList ':' statement | ;
+caseConstantList : caseConstant ( ',' caseConstant )* ;
+
+caseConstant    locals [ Typespec type = null, int value = 0 ]
+    : constant ;
+
+repeatStatement : REPEAT statementList UNTIL expression ;
+whileStatement : WHILE '(' expression ')' statement ;
+
+forStatement : FOR variable ':=' expression
+                    ( TO | DOWNTO ) expression DO statement ;
+
+procedureCallStatement : procedureName '(' argumentList? ')' ;
+
+procedureName   locals [ SymtabEntry entry = null ]
+    : IDENTIFIER ;
+
+argumentList : argument ( ',' argument )* ;
+argument     : expression ;
+
+writeStatement   : COUT writeArguments ;
+writelnStatement : WRITELN writeArguments? ;
+writeArguments   : '<<' writeArgument (',' writeArgument)* ;
+writeArgument    : expression (':' fieldWidth)? ;
+fieldWidth       : sign? integerConstant (':' decimalPlaces)? ;
+decimalPlaces    : integerConstant ;
+
+readStatement   : READ readArguments ;
+readlnStatement : READLN readArguments ;
+readArguments   : '(' variable ( ',' variable )* ')' ;
+
+expression          locals [ Typespec type = null ]
+    : simpleExpression (relOp simpleExpression)? ;
+
+simpleExpression    locals [ Typespec type = null ]
+    : sign? term (addOp term)* ;
+
+term                locals [ Typespec type = null ]
+    : factor (mulOp factor)* ;
+
+factor              locals [ Typespec type = null ]
+    : variable             # variableFactor
+    | number               # numberFactor
+    | characterConstant    # characterFactor
+    | stringConstant       # stringFactor
+    | functionCall         # functionCallFactor
+    | NOT factor           # notFactor
+    | '(' expression ')'   # parenthesizedFactor
+    ;
+
+variable            locals [ Typespec type = null, SymtabEntry entry = null ]
+    : variableIdentifier modifier* ;
+
+modifier  : '[' indexList ']' | '.' field ;
+indexList : index ( ',' index )* ;
+index     : expression ;
+
+field               locals [ Typespec type = null, SymtabEntry entry = null ]
+    : IDENTIFIER ;
+
+functionCall : functionName '(' argumentList? ')' ;
+functionName        locals [ Typespec type = null, SymtabEntry entry = null ]
+    : IDENTIFIER ;
+
+number          : sign? unsignedNumber ;
+unsignedNumber  : integerConstant | realConstant ;
+integerConstant : INTEGER ;
+realConstant    : REAL;
+
+characterConstant : CHARACTER ;
+stringConstant    : STRING ;
+
+relOp : '==' | '<>' | '<' | '<=' | '>' | '>=' ;
+addOp : '+' | '-' | OR ;
+mulOp : '*' | '/' | DIV | MOD | AND ;
+
 fragment A : ('a' | 'A') ;
 fragment B : ('b' | 'B') ;
 fragment C : ('c' | 'C') ;
@@ -67,19 +226,60 @@ fragment X : ('x' | 'X') ;
 fragment Y : ('y' | 'Y') ;
 fragment Z : ('z' | 'Z') ;
 
-String: '"' .*? '"' ;
-Identifier: [a-zA-Z_][a-zA-Z0-9_]* ;
-Number: '0' |'-'?[1-9][0-9]*;
+PROGRAM   : P R O G R A M ;
+CONST     : C O N S T ;
+TYPE      : T Y P E ;
+ARRAY     : A R R A Y ;
+OF        : O F ;
+RECORD    : R E C O R D ;
+VAR       : V A R ;
+INTMAIN     : 'int main(){' ;
+END       : E N D ;
+DIV       : D I V ;
+MOD       : M O D ;
+AND       : A N D ;
+OR        : O R ;
+NOT       : N O T ;
+IF        : 'if';
+THEN      : T H E N ;
+ELSE      : 'else';
+CASE      : C A S E ;
+REPEAT    : R E P E A T ;
+UNTIL     : U N T I L ;
+WHILE     : 'while';
+DO        : D O ;
+FOR       : 'for';
+TO        : T O ;
+DOWNTO    : D O W N T O ;
+COUT     : 'cout' ;
+WRITELN   : W R I T E L N ;
+READ      : R E A D ;
+READLN    : R E A D L N ;
+PROCEDURE : P R O C E D U R E ;
+FUNCTION  : F U N C T I O N ;
 
-condition: expression ('==' | '!=' | '<' | '<=' | '>' | '>=') expression;
+IDENTIFIER : [a-zA-Z][a-zA-Z0-9]* ;
+INTEGER    : [0-9]+ ;
 
-//handle the basic print statement
-printStatement: 'std::cout' '<<' expression ('<<' 'std::endl')? ';';
+REAL       : INTEGER '.' INTEGER
+           | INTEGER ('e' | 'E') ('+' | '-')? INTEGER
+           | INTEGER '.' INTEGER ('e' | 'E') ('+' | '-')? INTEGER
+           ;
 
-Comment: '//' ~[\r\n]* -> skip;  // use so the that // just means comment
-
-//use this to ignore white line and spaces
 NEWLINE : '\r'? '\n' -> skip  ;
-WS      : [ \t\n]+ -> skip ;
+WS      : [ \t]+ -> skip ;
 
+QUOTE     : '\'' ;
+CHARACTER : QUOTE CHARACTER_CHAR QUOTE ;
+STRING    : QUOTE STRING_CHAR* QUOTE ;
 
+fragment CHARACTER_CHAR : ~('\'')   // any non-quote character
+                        ;
+
+fragment STRING_CHAR : QUOTE QUOTE  // two consecutive quotes
+                     | ~('\'')      // any non-quote character
+                     ;
+
+COMMENT : '{' COMMENT_CHARACTER* '}' -> skip ;
+
+fragment COMMENT_CHARACTER : ~('}') ;

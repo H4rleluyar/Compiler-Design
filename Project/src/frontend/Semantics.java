@@ -21,26 +21,26 @@ import static intermediate.util.BackendMode.*;
  * Semantic operations.
  * Perform type checking and create symbol tables.
  */
-public class Semantics extends PascalBaseVisitor<Object>
+public class Semantics extends cppBaseVisitor<Object>
 {
     private BackendMode mode;
     private SymtabStack symtabStack;
     private SymtabEntry programId;
     private SemanticErrorHandler error;
-    
+
     public Semantics(BackendMode mode)
     {
         // Create and initialize the symbol table stack.
         this.symtabStack = new SymtabStack();
         Predefined.initialize(symtabStack);
-        
+
         this.mode = mode;
         this.error = new SemanticErrorHandler();
     }
-    
+
     public SymtabEntry getProgramId() { return programId; }
     public int getErrorCount() { return error.getCount(); };
-    
+
     /**
      * Return the default value for a data type.
      * @param type the data type.
@@ -57,76 +57,76 @@ public class Semantics extends PascalBaseVisitor<Object>
         else /* string */                        return String.valueOf("#");
     }
 
-    @Override 
-    public Object visitProgram(PascalParser.ProgramContext ctx) 
-    { 
+    @Override
+    public Object visitProgram(cppParser.ProgramContext ctx)
+    {
         visit(ctx.programHeader());
         visit(ctx.block().declarations());
         visit(ctx.block().compoundStatement());
-        
+
         // Print the cross-reference table.
         CrossReferencer crossReferencer = new CrossReferencer();
         crossReferencer.print(symtabStack);
 
         return null;
     }
-    
-    @Override 
-    public Object visitProgramHeader(PascalParser.ProgramHeaderContext ctx) 
-    { 
-        PascalParser.ProgramIdentifierContext idCtx = ctx.programIdentifier();
+
+    @Override
+    public Object visitProgramHeader(cppParser.ProgramHeaderContext ctx)
+    {
+        cppParser.ProgramIdentifierContext idCtx = ctx.programIdentifier();
         String programName = idCtx.IDENTIFIER().getText();  // don't shift case
-        
+
         programId = symtabStack.enterLocal(programName, PROGRAM);
         programId.setRoutineSymtab(symtabStack.push());
-        
+
         symtabStack.setProgramId(programId);
         symtabStack.getLocalSymtab().setOwner(programId);
-        
+
         idCtx.entry = programId;
         return null;
     }
 
-    @Override 
+    @Override
     public Object visitConstantDefinition(
-                                PascalParser.ConstantDefinitionContext ctx) 
-    { 
-        PascalParser.ConstantIdentifierContext idCtx = ctx.constantIdentifier();
+                                cppParser.ConstantDefinitionContext ctx)
+    {
+        cppParser.ConstantIdentifierContext idCtx = ctx.constantIdentifier();
         String constantName = idCtx.IDENTIFIER().getText().toLowerCase();
         SymtabEntry constantId = symtabStack.lookupLocal(constantName);
-        
+
         if (constantId == null)
         {
-            PascalParser.ConstantContext constCtx = ctx.constant();
+            cppParser.ConstantContext constCtx = ctx.constant();
             Object constValue = visit(constCtx);
-            
+
             constantId = symtabStack.enterLocal(constantName, CONSTANT);
             constantId.setValue(constValue);
             constantId.setType(constCtx.type);
-            
+
             idCtx.entry = constantId;
             idCtx.type  = constCtx.type;
         }
         else
         {
             error.flag(REDECLARED_IDENTIFIER, ctx);
-            
+
             idCtx.entry = constantId;
             idCtx.type  = Predefined.integerType;
         }
 
-        constantId.appendLineNumber(ctx.getStart().getLine());        
+        constantId.appendLineNumber(ctx.getStart().getLine());
         return null;
     }
 
-    @Override 
-    public Object visitConstant(PascalParser.ConstantContext ctx) 
+    @Override
+    public Object visitConstant(cppParser.ConstantContext ctx)
     {
         if (ctx.IDENTIFIER() != null)
         {
             String constantName = ctx.IDENTIFIER().getText().toLowerCase();
             SymtabEntry constantId = symtabStack.lookup(constantName);
-            
+
             if (constantId != null)
             {
                 Kind kind = constantId.getKind();
@@ -134,16 +134,16 @@ public class Semantics extends PascalBaseVisitor<Object>
                 {
                     error.flag(INVALID_CONSTANT, ctx);
                 }
-                
+
                 ctx.type  = constantId.getType();
                 ctx.value = constantId.getValue();
-                
+
                 constantId.appendLineNumber(ctx.getStart().getLine());
             }
             else
             {
                 error.flag(UNDECLARED_IDENTIFIER, ctx);
-                
+
                 ctx.type = Predefined.integerType;
                 ctx.value = 0;
             }
@@ -155,9 +155,9 @@ public class Semantics extends PascalBaseVisitor<Object>
         }
         else if (ctx.stringConstant() != null)
         {
-            String pascalString = ctx.stringConstant().STRING().getText();
-            String unquoted = pascalString.substring(1, pascalString.length()-1);
-            ctx.type  = Predefined.stringType;            
+            String cppString = ctx.stringConstant().STRING().getText();
+            String unquoted = cppString.substring(1, cppString.length()-1);
+            ctx.type  = Predefined.stringType;
             ctx.value = unquoted.replace("''", "'").replace("\"", "\\\"");
         }
         else  // number
@@ -173,60 +173,60 @@ public class Semantics extends PascalBaseVisitor<Object>
                 ctx.value = Float.parseFloat(ctx.getText());
             }
         }
-        
+
         return ctx.value;
     }
 
-    @Override 
-    public Object visitTypeDefinition(PascalParser.TypeDefinitionContext ctx) 
-    { 
-        PascalParser.TypeIdentifierContext idCtx = ctx.typeIdentifier();
+    @Override
+    public Object visitTypeDefinition(cppParser.TypeDefinitionContext ctx)
+    {
+        cppParser.TypeIdentifierContext idCtx = ctx.typeIdentifier();
         String typeName = idCtx.IDENTIFIER().getText().toLowerCase();
         SymtabEntry typeId = symtabStack.lookupLocal(typeName);
-        
-        PascalParser.TypeSpecificationContext typespecCtx = 
+
+        cppParser.TypeSpecificationContext typespecCtx =
                                                         ctx.typeSpecification();
-        
+
         // If it's a record type, create a named record type.
-        if (typespecCtx instanceof PascalParser.RecordTypespecContext)
+        if (typespecCtx instanceof cppParser.RecordTypespecContext)
         {
             typeId = createRecordType(
-                    (PascalParser.RecordTypespecContext) typespecCtx, typeName);            
+                    (cppParser.RecordTypespecContext) typespecCtx, typeName);
         }
 
         // Enter the type name of any other type into the symbol table.
         else if (typeId == null)
         {
             visit(typespecCtx);
-            
+
             typeId = symtabStack.enterLocal(typeName, TYPE);
             typeId.setType(typespecCtx.type);
             typespecCtx.type.setIdentifier(typeId);
         }
-        
+
         // Redeclared identifier.
-        else 
+        else
         {
             error.flag(REDECLARED_IDENTIFIER, ctx);
         }
-        
+
         idCtx.entry = typeId;
         idCtx.type  = typespecCtx.type;
 
-        typeId.appendLineNumber(ctx.getStart().getLine());        
+        typeId.appendLineNumber(ctx.getStart().getLine());
         return null;
     }
 
-    @Override 
-    public Object visitRecordTypespec(PascalParser.RecordTypespecContext ctx) 
-    { 
+    @Override
+    public Object visitRecordTypespec(cppParser.RecordTypespecContext ctx)
+    {
         // Create an unnamed record type.
         String recordTypeName = Symtab.generateUnnamedName();
         createRecordType(ctx, recordTypeName);
-        
+
         return null;
     }
-    
+
     /**
      * Create a new record type.
      * @param recordTypeSpecCtx the RecordTypespecContext.
@@ -234,17 +234,17 @@ public class Semantics extends PascalBaseVisitor<Object>
      * @return the symbol table entry of the record type identifier.
      */
     private SymtabEntry createRecordType(
-                        PascalParser.RecordTypespecContext recordTypeSpecCtx, 
+                        cppParser.RecordTypespecContext recordTypeSpecCtx,
                         String recordTypeName)
     {
-        PascalParser.RecordTypeContext recordTypeCtx = 
+        cppParser.RecordTypeContext recordTypeCtx =
                                                 recordTypeSpecCtx.recordType();
         Typespec recordType = new Typespec(RECORD);
-        
+
         SymtabEntry recordTypeId = symtabStack.enterLocal(recordTypeName, TYPE);
         recordTypeId.setType(recordType);
         recordType.setIdentifier(recordTypeId);
-        
+
         String recordTypePath = createRecordTypePath(recordType);
         recordType.setRecordTypePath(recordTypePath);
 
@@ -255,7 +255,7 @@ public class Semantics extends PascalBaseVisitor<Object>
 
         recordTypeCtx.entry    = recordTypeId;
         recordTypeSpecCtx.type = recordType;
-        
+
         return recordTypeId;
     }
 
@@ -269,14 +269,14 @@ public class Semantics extends PascalBaseVisitor<Object>
         SymtabEntry recordId = recordType.getIdentifier();
         SymtabEntry parentId = recordId.getSymtab().getOwner();
         String path = recordId.getName();
-        
-        while (   (parentId.getKind() == TYPE) 
+
+        while (   (parentId.getKind() == TYPE)
                && (parentId.getType().getForm() == RECORD))
         {
             path = parentId.getName() + "$" + path;
             parentId = parentId.getSymtab().getOwner();
         }
-        
+
         path = parentId.getName() + "$" + path;
         return path;
     }
@@ -287,44 +287,44 @@ public class Semantics extends PascalBaseVisitor<Object>
      * @param ownerId the symbol table entry of the owner's identifier.
      * @return the symbol table.
      */
-    private Symtab createRecordSymtab(PascalParser.RecordFieldsContext ctx,
-                                      SymtabEntry ownerId) 
-    { 
+    private Symtab createRecordSymtab(cppParser.RecordFieldsContext ctx,
+                                      SymtabEntry ownerId)
+    {
         Symtab recordSymtab = symtabStack.push();
 
         recordSymtab.setOwner(ownerId);
         visit(ctx.variableDeclarationsList());
         recordSymtab.resetVariables(RECORD_FIELD);
         symtabStack.pop();
-        
+
         return recordSymtab;
     }
-    
-    @Override 
-    public Object visitSimpleTypespec(PascalParser.SimpleTypespecContext ctx) 
-    { 
+
+    @Override
+    public Object visitSimpleTypespec(cppParser.SimpleTypespecContext ctx)
+    {
         visit(ctx.simpleType());
         ctx.type = ctx.simpleType().type;
-        
+
         return null;
     }
 
-    @Override 
+    @Override
     public Object visitTypeIdentifierTypespec(
-                                PascalParser.TypeIdentifierTypespecContext ctx) 
-    { 
+                                cppParser.TypeIdentifierTypespecContext ctx)
+    {
         visit(ctx.typeIdentifier());
         ctx.type = ctx.typeIdentifier().type;
-        
+
         return null;
     }
 
-    @Override 
-    public Object visitTypeIdentifier(PascalParser.TypeIdentifierContext ctx) 
-    { 
+    @Override
+    public Object visitTypeIdentifier(cppParser.TypeIdentifierContext ctx)
+    {
         String typeName = ctx.IDENTIFIER().getText().toLowerCase();
         SymtabEntry typeId = symtabStack.lookup(typeName);
-        
+
         if (typeId != null)
         {
             if (typeId.getKind() != TYPE)
@@ -336,7 +336,7 @@ public class Semantics extends PascalBaseVisitor<Object>
             {
                 ctx.type = typeId.getType();
             }
-            
+
             typeId.appendLineNumber(ctx.start.getLine());
         }
         else
@@ -344,70 +344,70 @@ public class Semantics extends PascalBaseVisitor<Object>
             error.flag(UNDECLARED_IDENTIFIER, ctx);
             ctx.type = Predefined.integerType;
         }
-        
+
         ctx.entry = typeId;
         return null;
     }
 
-    @Override 
+    @Override
     public Object visitEnumerationTypespec(
-                                    PascalParser.EnumerationTypespecContext ctx) 
-    { 
+                                    cppParser.EnumerationTypespecContext ctx)
+    {
         Typespec enumType = new Typespec(ENUMERATION);
         ArrayList<SymtabEntry> constants = new ArrayList<>();
         int value = -1;
 
         // Loop over the enumeration constants.
-        for (PascalParser.EnumerationConstantContext constCtx : 
+        for (cppParser.EnumerationConstantContext constCtx :
                                     ctx.enumerationType().enumerationConstant())
         {
-            PascalParser.ConstantIdentifierContext constIdCtx = 
+            cppParser.ConstantIdentifierContext constIdCtx =
                                                 constCtx.constantIdentifier();
             String constantName = constIdCtx.IDENTIFIER().getText()
                                                          .toLowerCase();
             SymtabEntry constantId = symtabStack.lookupLocal(constantName);
-            
+
             if (constantId == null)
             {
-                constantId = symtabStack.enterLocal(constantName, 
+                constantId = symtabStack.enterLocal(constantName,
                                                     ENUMERATION_CONSTANT);
                 constantId.setType(enumType);
                 constantId.setValue(++value);
-                
+
                 constants.add(constantId);
             }
             else
             {
                 error.flag(REDECLARED_IDENTIFIER, constCtx);
             }
-            
+
             constIdCtx.entry = constantId;
             constIdCtx.type  = enumType;
-            
-            constantId.appendLineNumber(ctx.getStart().getLine());        
+
+            constantId.appendLineNumber(ctx.getStart().getLine());
         }
 
         enumType.setEnumerationConstants(constants);
         ctx.type = enumType;
-       
+
         return null;
     }
 
-    @Override 
+    @Override
     public Object visitSubrangeTypespec(
-                                    PascalParser.SubrangeTypespecContext ctx) 
-    { 
+                                    cppParser.SubrangeTypespecContext ctx)
+    {
         Typespec type = new Typespec(SUBRANGE);
-        PascalParser.SubrangeTypeContext subCtx = ctx.subrangeType();
-        PascalParser.ConstantContext minCtx = subCtx.constant().get(0);
-        PascalParser.ConstantContext maxCtx = subCtx.constant().get(1);
-        
+        cppParser.SubrangeTypeContext subCtx = ctx.subrangeType();
+        cppParser.ConstantContext minCtx = subCtx.constant().get(0);
+        cppParser.ConstantContext maxCtx = subCtx.constant().get(1);
+
         Object minObj = visit(minCtx);
         Object maxObj = visit(maxCtx);
-        
+
         Typespec minType = minCtx.type;
         Typespec maxType = maxCtx.type;
-        
+
         if (   (   (minType.getForm() != SCALAR)
                 && (minType.getForm() != ENUMERATION))
             || (minType == Predefined.realType)
@@ -417,7 +417,7 @@ public class Semantics extends PascalBaseVisitor<Object>
             minType = Predefined.integerType;
             minObj = 0;
         }
-        
+
         int minValue;
         int maxValue;
 
@@ -443,7 +443,7 @@ public class Semantics extends PascalBaseVisitor<Object>
             maxType = minType;
             maxObj  = minObj;
         }
-        
+
         type.setSubrangeBaseType(minType);
         type.setSubrangeMinValue((Integer) minValue);
         type.setSubrangeMaxValue((Integer) maxValue);
@@ -452,41 +452,41 @@ public class Semantics extends PascalBaseVisitor<Object>
         return null;
     }
 
-    @Override 
-    public Object visitArrayTypespec(PascalParser.ArrayTypespecContext ctx) 
-    { 
+    @Override
+    public Object visitArrayTypespec(cppParser.ArrayTypespecContext ctx)
+    {
         Typespec arrayType = new Typespec(ARRAY);
-        PascalParser.ArrayTypeContext arrayCtx = ctx.arrayType();
-        PascalParser.ArrayDimensionListContext listCtx = 
+        cppParser.ArrayTypeContext arrayCtx = ctx.arrayType();
+        cppParser.ArrayDimensionListContext listCtx =
                                                 arrayCtx.arrayDimensionList();
-        
+
         ctx.type = arrayType;
-        
+
         // Loop over the array dimensions.
         int count = listCtx.simpleType().size();
         for (int i = 0; i < count; i++)
         {
-            PascalParser.SimpleTypeContext simpleCtx = 
+            cppParser.SimpleTypeContext simpleCtx =
                                                     listCtx.simpleType().get(i);
             visit(simpleCtx);
             arrayType.setArrayIndexType(simpleCtx.type);
             arrayType.setArrayElementCount(typeCount(simpleCtx.type));
-            
-            if (i < count-1) 
+
+            if (i < count-1)
             {
                 Typespec elmtType = new Typespec(ARRAY);
                 arrayType.setArrayElementType(elmtType);
                 arrayType = elmtType;
             }
         }
-        
+
         visit(arrayCtx.typeSpecification());
         Typespec elmtType = arrayCtx.typeSpecification().type;
         arrayType.setArrayElementType(elmtType);
-        
+
         return null;
     }
-    
+
     /**
      * Return the number of values in a datatype.
      * @param type the datatype.
@@ -495,7 +495,7 @@ public class Semantics extends PascalBaseVisitor<Object>
     private int typeCount(Typespec type)
     {
         int count = 0;
-        
+
         if (type.getForm() == ENUMERATION)
         {
             ArrayList<SymtabEntry> constants = type.getEnumerationConstants();
@@ -507,66 +507,66 @@ public class Semantics extends PascalBaseVisitor<Object>
             int maxValue = type.getSubrangeMaxValue();
             count = maxValue - minValue + 1;
         }
-        
+
         return count;
     }
 
-    @Override 
+    @Override
     public Object visitVariableDeclarations(
-                                PascalParser.VariableDeclarationsContext ctx) 
-    { 
-        PascalParser.TypeSpecificationContext typeCtx = ctx.typeSpecification();
+                                cppParser.VariableDeclarationsContext ctx)
+    {
+        cppParser.TypeSpecificationContext typeCtx = ctx.typeSpecification();
         visit(typeCtx);
-        
-        PascalParser.VariableIdentifierListContext listCtx = 
+
+        cppParser.VariableIdentifierListContext listCtx =
                                                 ctx.variableIdentifierList();
-        
+
         // Loop over the variables being declared.
-        for (PascalParser.VariableIdentifierContext idCtx : 
+        for (cppParser.VariableIdentifierContext idCtx :
                                                 listCtx.variableIdentifier())
         {
-            int lineNumber = idCtx.getStart().getLine();        
+            int lineNumber = idCtx.getStart().getLine();
             String variableName = idCtx.IDENTIFIER().getText().toLowerCase();
             SymtabEntry variableId = symtabStack.lookupLocal(variableName);
-            
+
             if (variableId == null)
             {
                 variableId = symtabStack.enterLocal(variableName, VARIABLE);
                 variableId.setType(typeCtx.type);
-                
+
                 // Assign slot numbers to local variables.
                 Symtab symtab = variableId.getSymtab();
                 if (symtab.getNestingLevel() > 1)
                 {
                     variableId.setSlotNumber(symtab.nextSlotNumber());
                 }
-                
+
                 idCtx.entry = variableId;
             }
             else
             {
                 error.flag(REDECLARED_IDENTIFIER, ctx);
             }
-            
-            variableId.appendLineNumber(lineNumber);        
+
+            variableId.appendLineNumber(lineNumber);
         }
-        
+
         return null;
     }
 
-    @Override 
+    @Override
     @SuppressWarnings("unchecked")
     public Object visitRoutineDefinition(
-                                    PascalParser.RoutineDefinitionContext ctx) 
+                                    cppParser.RoutineDefinitionContext ctx)
     {
-        PascalParser.FunctionHeadContext  funcCtx = ctx.functionHead();
-        PascalParser.ProcedureHeadContext procCtx = ctx.procedureHead();
-        PascalParser.RoutineIdentifierContext idCtx = null;
-        PascalParser.ParametersContext parameters = null;
+        cppParser.FunctionHeadContext  funcCtx = ctx.functionHead();
+        cppParser.ProcedureHeadContext procCtx = ctx.procedureHead();
+        cppParser.RoutineIdentifierContext idCtx = null;
+        cppParser.ParametersContext parameters = null;
         boolean functionDefinition = funcCtx != null;
         Typespec returnType = null;
         String routineName;
-        
+
         if (functionDefinition)
         {
             idCtx = funcCtx.routineIdentifier();
@@ -577,13 +577,13 @@ public class Semantics extends PascalBaseVisitor<Object>
             idCtx = procCtx.routineIdentifier();
             parameters = procCtx.parameters();
         }
-        
+
         routineName = idCtx.IDENTIFIER().getText().toLowerCase();
         SymtabEntry routineId = symtabStack.lookupLocal(routineName);
-        
+
         if (routineId != null)
         {
-            error.flag(REDECLARED_IDENTIFIER, 
+            error.flag(REDECLARED_IDENTIFIER,
                        ctx.getStart().getLine(), routineName);
             return null;
         }
@@ -592,42 +592,42 @@ public class Semantics extends PascalBaseVisitor<Object>
                         routineName, functionDefinition ? FUNCTION : PROCEDURE);
         routineId.setRoutineCode(DECLARED);
         idCtx.entry = routineId;
-        
+
         // Append to the parent routine's list of subroutines.
         SymtabEntry parentId = symtabStack.getLocalSymtab().getOwner();
         parentId.appendSubroutine(routineId);
-        
+
         routineId.setRoutineSymtab(symtabStack.push());
         idCtx.entry = routineId;
-        
+
         Symtab symtab = symtabStack.getLocalSymtab();
         symtab.setOwner(routineId);
-        
+
         if (parameters != null)
         {
-            ArrayList<SymtabEntry> parameterIds = (ArrayList<SymtabEntry>) 
+            ArrayList<SymtabEntry> parameterIds = (ArrayList<SymtabEntry>)
                                 visit(parameters.parameterDeclarationsList());
             routineId.setRoutineParameters(parameterIds);
-            
+
             for (SymtabEntry parmId : parameterIds)
             {
                 parmId.setSlotNumber(symtab.nextSlotNumber());
             }
         }
-        
+
         if (functionDefinition)
         {
-            PascalParser.TypeIdentifierContext typeIdCtx = 
+            cppParser.TypeIdentifierContext typeIdCtx =
                                                     funcCtx.typeIdentifier();
             visit(typeIdCtx);
             returnType = typeIdCtx.type;
-            
+
             if (returnType.getForm() != SCALAR)
             {
                 error.flag(INVALID_RETURN_TYPE, typeIdCtx);
                 returnType = Predefined.integerType;
             }
-            
+
             routineId.setType(returnType);
             idCtx.type = returnType;
         }
@@ -635,72 +635,72 @@ public class Semantics extends PascalBaseVisitor<Object>
         {
             idCtx.type = null;
         }
-        
-        visit(ctx.block().declarations());     
-        
+
+        visit(ctx.block().declarations());
+
         // Enter the function's associated variable into its symbol table.
         if (functionDefinition)
         {
-            SymtabEntry assocVarId = 
+            SymtabEntry assocVarId =
                                 symtabStack.enterLocal(routineName, VARIABLE);
             assocVarId.setSlotNumber(symtab.nextSlotNumber());
             assocVarId.setType(returnType);
         }
-        
+
         visit(ctx.block().compoundStatement());
         routineId.setExecutable(ctx.block().compoundStatement());
-        
+
         symtabStack.pop();
         return null;
     }
 
-    @Override 
+    @Override
     @SuppressWarnings("unchecked")
     public Object visitParameterDeclarationsList(
-                            PascalParser.ParameterDeclarationsListContext ctx)
+                            cppParser.ParameterDeclarationsListContext ctx)
     {
         ArrayList<SymtabEntry> parameterList = new ArrayList<>();
-        
+
         // Loop over the parameter declarations.
-        for (PascalParser.ParameterDeclarationsContext dclCtx : 
+        for (cppParser.ParameterDeclarationsContext dclCtx :
                                                     ctx.parameterDeclarations())
         {
-            ArrayList<SymtabEntry> parameterSublist = 
+            ArrayList<SymtabEntry> parameterSublist =
                                         (ArrayList<SymtabEntry>) visit(dclCtx);
             parameterList.addAll(parameterSublist);
         }
-        
+
         return parameterList;
     }
 
-    @Override 
+    @Override
     public Object visitParameterDeclarations(
-                                PascalParser.ParameterDeclarationsContext ctx) 
+                                cppParser.ParameterDeclarationsContext ctx)
     {
-        Kind kind = ctx.VAR() != null ? REFERENCE_PARAMETER : VALUE_PARAMETER; 
-        PascalParser.TypeIdentifierContext typeCtx = ctx.typeIdentifier();
-        
+        Kind kind = ctx.VAR() != null ? REFERENCE_PARAMETER : VALUE_PARAMETER;
+        cppParser.TypeIdentifierContext typeCtx = ctx.typeIdentifier();
+
         visit(typeCtx);
         Typespec parmType = typeCtx.type;
-        
+
         ArrayList<SymtabEntry> parameterSublist = new ArrayList<>();
-        
+
         // Loop over the parameter identifiers.
-        PascalParser.ParameterIdentifierListContext parmListCtx = 
+        cppParser.ParameterIdentifierListContext parmListCtx =
                                                 ctx.parameterIdentifierList();
-        for (PascalParser.ParameterIdentifierContext parmIdCtx : 
+        for (cppParser.ParameterIdentifierContext parmIdCtx :
                                             parmListCtx.parameterIdentifier())
         {
-            int lineNumber = parmIdCtx.getStart().getLine();   
+            int lineNumber = parmIdCtx.getStart().getLine();
             String parmName = parmIdCtx.IDENTIFIER().getText().toLowerCase();
             SymtabEntry parmId = symtabStack.lookupLocal(parmName);
-            
+
             if (parmId == null)
             {
                 parmId = symtabStack.enterLocal(parmName, kind);
                 parmId.setType(parmType);
-                
-                if (   (kind == REFERENCE_PARAMETER) 
+
+                if (   (kind == REFERENCE_PARAMETER)
                     && (mode != EXECUTOR)
                     && (parmType.getForm() == SCALAR))
                 {
@@ -711,78 +711,78 @@ public class Semantics extends PascalBaseVisitor<Object>
             {
                 error.flag(REDECLARED_IDENTIFIER, parmIdCtx);
             }
-            
+
             parmIdCtx.entry = parmId;
             parmIdCtx.type  = parmType;
-            
+
             parameterSublist.add(parmId);
-            parmId.appendLineNumber(lineNumber);    
+            parmId.appendLineNumber(lineNumber);
         }
-        
+
         return parameterSublist;
     }
-    
-    @Override 
+
+    @Override
     public Object visitAssignmentStatement(
-                                    PascalParser.AssignmentStatementContext ctx) 
+                                    cppParser.AssignmentStatementContext ctx)
     {
-        PascalParser.LhsContext lhsCtx = ctx.lhs();
-        PascalParser.RhsContext rhsCtx = ctx.rhs();
-        
+        cppParser.LhsContext lhsCtx = ctx.lhs();
+        cppParser.RhsContext rhsCtx = ctx.rhs();
+
         visitChildren(ctx);
-        
+
         Typespec lhsType = lhsCtx.type;
         Typespec rhsType = rhsCtx.expression().type;
-        
+
         if (!TypeChecker.areAssignmentCompatible(lhsType, rhsType))
         {
             error.flag(INCOMPATIBLE_ASSIGNMENT, rhsCtx);
         }
-        
+
         return null;
     }
 
-    @Override 
-    public Object visitLhs(PascalParser.LhsContext ctx) 
+    @Override
+    public Object visitLhs(cppParser.LhsContext ctx)
     {
-        PascalParser.VariableContext varCtx = ctx.variable();
+        cppParser.VariableContext varCtx = ctx.variable();
         visit(varCtx);
         ctx.type = varCtx.type;
-        
+
         return null;
     }
 
-    @Override 
-    public Object visitIfStatement(PascalParser.IfStatementContext ctx) 
+    @Override
+    public Object visitIfStatement(cppParser.IfStatementContext ctx)
     {
-        PascalParser.ExpressionContext     exprCtx  = ctx.expression();
-        PascalParser.TrueStatementContext  trueCtx  = ctx.trueStatement();
-        PascalParser.FalseStatementContext falseCtx = ctx.falseStatement();
-        
+        cppParser.ExpressionContext     exprCtx  = ctx.expression();
+        cppParser.TrueStatementContext  trueCtx  = ctx.trueStatement();
+        cppParser.FalseStatementContext falseCtx = ctx.falseStatement();
+
         visit(exprCtx);
         Typespec exprType = exprCtx.type;
-        
+
         if (!TypeChecker.isBoolean(exprType))
         {
             error.flag(TYPE_MUST_BE_BOOLEAN, exprCtx);
         }
-        
+
         visit(trueCtx);
         if (falseCtx != null) visit(falseCtx);
-        
+
         return null;
     }
 
-    @Override 
-    public Object visitCaseStatement(PascalParser.CaseStatementContext ctx) 
+    @Override
+    public Object visitCaseStatement(cppParser.CaseStatementContext ctx)
     {
-        PascalParser.ExpressionContext exprCtx = ctx.expression();
+        cppParser.ExpressionContext exprCtx = ctx.expression();
         visit(exprCtx);
         Typespec exprType = exprCtx.type;
         Form exprTypeForm = exprType.getForm();
-        
-        if (   (   (exprTypeForm != SCALAR) 
-                && (exprTypeForm != ENUMERATION) 
+
+        if (   (   (exprTypeForm != SCALAR)
+                && (exprTypeForm != ENUMERATION)
                 && (exprTypeForm != SUBRANGE))
             || (exprType == Predefined.realType)
             || (exprType == Predefined.stringType))
@@ -790,31 +790,31 @@ public class Semantics extends PascalBaseVisitor<Object>
             error.flag(TYPE_MISMATCH, exprCtx);
             exprType = Predefined.integerType;
         }
-        
+
         HashSet<Integer> constants = new HashSet<>();
-        PascalParser.CaseBranchListContext branchListCtx = ctx.caseBranchList();
-        
+        cppParser.CaseBranchListContext branchListCtx = ctx.caseBranchList();
+
         // Loop over the CASE branches.
-        for (PascalParser.CaseBranchContext branchCtx : 
+        for (cppParser.CaseBranchContext branchCtx :
                                                     branchListCtx.caseBranch())
         {
-            PascalParser.CaseConstantListContext constListCtx = 
+            cppParser.CaseConstantListContext constListCtx =
                                                     branchCtx.caseConstantList();
-            PascalParser.StatementContext stmtCtx = branchCtx.statement();
-            
+            cppParser.StatementContext stmtCtx = branchCtx.statement();
+
             if (constListCtx != null)
             {
                 // Loop over the CASE constants in each branch.
-                for (PascalParser.CaseConstantContext caseConstCtx : 
+                for (cppParser.CaseConstantContext caseConstCtx :
                                                     constListCtx.caseConstant())
                 {
-                    PascalParser.ConstantContext constCtx = 
+                    cppParser.ConstantContext constCtx =
                                                         caseConstCtx.constant();
                     Object constValue = visit(constCtx);
-                    
+
                     caseConstCtx.type  = constCtx.type;
                     caseConstCtx.value = 0;
-                    
+
                     if (constCtx.type != exprType)
                     {
                         error.flag(TYPE_MISMATCH, constCtx);
@@ -828,7 +828,7 @@ public class Semantics extends PascalBaseVisitor<Object>
                     {
                         caseConstCtx.value = (Character) constValue;
                     }
-                    
+
                     if (constants.contains(caseConstCtx.value))
                     {
                         error.flag(DUPLICATE_CASE_CONSTANT, constCtx);
@@ -839,58 +839,58 @@ public class Semantics extends PascalBaseVisitor<Object>
                     }
                 }
             }
-            
+
             if (stmtCtx != null) visit(stmtCtx);
         }
-        
+
         return null;
     }
 
-    @Override 
-    public Object visitRepeatStatement(PascalParser.RepeatStatementContext ctx) 
+    @Override
+    public Object visitRepeatStatement(cppParser.RepeatStatementContext ctx)
     {
-        PascalParser.ExpressionContext exprCtx = ctx.expression();
+        cppParser.ExpressionContext exprCtx = ctx.expression();
         visit(exprCtx);
         Typespec exprType = exprCtx.type;
-        
+
         if (!TypeChecker.isBoolean(exprType))
         {
             error.flag(TYPE_MUST_BE_BOOLEAN, exprCtx);
         }
-        
+
         visit(ctx.statementList());
         return null;
     }
 
-    @Override 
-    public Object visitWhileStatement(PascalParser.WhileStatementContext ctx) 
+    @Override
+    public Object visitWhileStatement(cppParser.WhileStatementContext ctx)
     {
-        PascalParser.ExpressionContext exprCtx = ctx.expression();
+        cppParser.ExpressionContext exprCtx = ctx.expression();
         visit(exprCtx);
         Typespec exprType = exprCtx.type;
-        
+
         if (!TypeChecker.isBoolean(exprType))
         {
             error.flag(TYPE_MUST_BE_BOOLEAN, exprCtx);
         }
-        
+
         visit(ctx.statement());
         return null;
     }
 
-    @Override 
-    public Object visitForStatement(PascalParser.ForStatementContext ctx) 
+    @Override
+    public Object visitForStatement(cppParser.ForStatementContext ctx)
     {
-        PascalParser.VariableContext varCtx = ctx.variable();
+        cppParser.VariableContext varCtx = ctx.variable();
         visit(varCtx);
-        
+
         String controlName = varCtx.variableIdentifier().getText().toLowerCase();
         Typespec controlType = Predefined.integerType;
-        
+
         if (varCtx.entry != null)
         {
             controlType = varCtx.type;
-            
+
             if (   (controlType.getForm() != SCALAR )
                 || (controlType == Predefined.realType)
                 || (controlType == Predefined.stringType)
@@ -901,33 +901,33 @@ public class Semantics extends PascalBaseVisitor<Object>
         }
         else
         {
-            error.flag(UNDECLARED_IDENTIFIER, ctx.getStart().getLine(), 
+            error.flag(UNDECLARED_IDENTIFIER, ctx.getStart().getLine(),
                        controlName);
         }
-        
-        PascalParser.ExpressionContext startCtx = ctx.expression().get(0);
-        PascalParser.ExpressionContext endCtx   = ctx.expression().get(1);
-        
+
+        cppParser.ExpressionContext startCtx = ctx.expression().get(0);
+        cppParser.ExpressionContext endCtx   = ctx.expression().get(1);
+
         visit(startCtx);
         visit(endCtx);
-        
+
         if (startCtx.type != controlType) error.flag(TYPE_MISMATCH, startCtx);
         if (startCtx.type != endCtx.type) error.flag(TYPE_MISMATCH, endCtx);
-        
+
         visit(ctx.statement());
         return null;
     }
 
-    @Override 
+    @Override
     public Object visitProcedureCallStatement(
-                                PascalParser.ProcedureCallStatementContext ctx) 
+                                cppParser.ProcedureCallStatementContext ctx)
     {
-        PascalParser.ProcedureNameContext nameCtx = ctx.procedureName();
-        PascalParser.ArgumentListContext listCtx = ctx.argumentList();
+        cppParser.ProcedureNameContext nameCtx = ctx.procedureName();
+        cppParser.ArgumentListContext listCtx = ctx.argumentList();
         String name = ctx.procedureName().getText().toLowerCase();
         SymtabEntry procedureId = symtabStack.lookup(name);
         boolean badName = false;
-        
+
         if (procedureId == null)
         {
             error.flag(UNDECLARED_IDENTIFIER, nameCtx);
@@ -938,38 +938,38 @@ public class Semantics extends PascalBaseVisitor<Object>
             error.flag(NAME_MUST_BE_PROCEDURE, nameCtx);
             badName = true;
         }
-        
+
         // Bad procedure name. Do a simple arguments check and then leave.
         if (badName)
         {
-            for (PascalParser.ArgumentContext exprCtx : listCtx.argument())
+            for (cppParser.ArgumentContext exprCtx : listCtx.argument())
             {
                 visit(exprCtx);
             }
         }
-        
+
         // Good procedure name.
         else
         {
             ArrayList<SymtabEntry> parms = procedureId.getRoutineParameters();
             checkCallArguments(listCtx, parms);
         }
-        
+
         nameCtx.entry = procedureId;
         return null;
     }
 
-    @Override 
+    @Override
     public Object visitFunctionCallFactor(
-                                    PascalParser.FunctionCallFactorContext ctx) 
+                                    cppParser.FunctionCallFactorContext ctx)
     {
-        PascalParser.FunctionCallContext callCtx = ctx.functionCall();
-        PascalParser.FunctionNameContext nameCtx = callCtx.functionName();
-        PascalParser.ArgumentListContext listCtx = callCtx.argumentList();
+        cppParser.FunctionCallContext callCtx = ctx.functionCall();
+        cppParser.FunctionNameContext nameCtx = callCtx.functionName();
+        cppParser.ArgumentListContext listCtx = callCtx.argumentList();
         String name = callCtx.functionName().getText().toLowerCase();
         SymtabEntry functionId = symtabStack.lookup(name);
         boolean badName = false;
-        
+
         ctx.type = Predefined.integerType;
 
         if (functionId == null)
@@ -982,16 +982,16 @@ public class Semantics extends PascalBaseVisitor<Object>
             error.flag(NAME_MUST_BE_FUNCTION, nameCtx);
             badName = true;
         }
-        
+
         // Bad function name. Do a simple arguments check and then leave.
         if (badName)
         {
-            for (PascalParser.ArgumentContext exprCtx : listCtx.argument())
+            for (cppParser.ArgumentContext exprCtx : listCtx.argument())
             {
                 visit(exprCtx);
             }
         }
-        
+
         // Good function name.
         else
         {
@@ -999,41 +999,41 @@ public class Semantics extends PascalBaseVisitor<Object>
             checkCallArguments(listCtx, parameters);
             ctx.type = functionId.getType();
         }
-        
+
         nameCtx.entry = functionId;
         nameCtx.type  = ctx.type;
 
         return null;
     }
-    
+
     /**
      * Perform semantic operations on procedure and function call arguments.
      * @param listCtx the ArgumentListContext.
      * @param parameters the arraylist of parameters to fill.
      */
-    private void checkCallArguments(PascalParser.ArgumentListContext listCtx,
+    private void checkCallArguments(cppParser.ArgumentListContext listCtx,
                                     ArrayList<SymtabEntry> parameters)
     {
         int parmsCount = parameters.size();
         int argsCount = listCtx != null ? listCtx.argument().size() : 0;
-        
+
         if (parmsCount != argsCount)
         {
             error.flag(ARGUMENT_COUNT_MISMATCH, listCtx);
             return;
         }
-        
+
         // Check each argument against the corresponding parameter.
         for (int i = 0; i < parmsCount; i++)
         {
-            PascalParser.ArgumentContext argCtx = listCtx.argument().get(i);
-            PascalParser.ExpressionContext exprCtx = argCtx.expression();
+            cppParser.ArgumentContext argCtx = listCtx.argument().get(i);
+            cppParser.ExpressionContext exprCtx = argCtx.expression();
             visit(exprCtx);
-            
+
             SymtabEntry parmId = parameters.get(i);
             Typespec parmType = parmId.getType();
             Typespec argType  = exprCtx.type;
-            
+
             // For a VAR parameter, the argument must be a variable
             // with the same datatype.
             if (parmId.getKind() == REFERENCE_PARAMETER)
@@ -1050,7 +1050,7 @@ public class Semantics extends PascalBaseVisitor<Object>
                     error.flag(ARGUMENT_MUST_BE_VARIABLE, exprCtx);
                 }
             }
-            
+
             // For a value parameter, the argument type must be
             // assignment compatible with the parameter type.
             else if (!TypeChecker.areAssignmentCompatible(parmType, argType))
@@ -1065,71 +1065,71 @@ public class Semantics extends PascalBaseVisitor<Object>
      * @param exprCtx the ExpressionContext.
      * @return true if it's an expression only, else false.
      */
-    private boolean expressionIsVariable(PascalParser.ExpressionContext exprCtx)
+    private boolean expressionIsVariable(cppParser.ExpressionContext exprCtx)
     {
         // Only a single simple expression?
         if (exprCtx.simpleExpression().size() == 1)
         {
-            PascalParser.SimpleExpressionContext simpleCtx = 
+            cppParser.SimpleExpressionContext simpleCtx =
                                               exprCtx.simpleExpression().get(0);
             // Only a single term?
             if (simpleCtx.term().size() == 1)
             {
-                PascalParser.TermContext termCtx = simpleCtx.term().get(0);
-                
+                cppParser.TermContext termCtx = simpleCtx.term().get(0);
+
                 // Only a single factor?
                 if (termCtx.factor().size() == 1)
                 {
-                    return termCtx.factor().get(0) instanceof 
-                                            PascalParser.VariableFactorContext;
+                    return termCtx.factor().get(0) instanceof
+                                            cppParser.VariableFactorContext;
                 }
             }
         }
-        
+
         return false;
     }
 
-    @Override 
-    public Object visitExpression(PascalParser.ExpressionContext ctx) 
+    @Override
+    public Object visitExpression(cppParser.ExpressionContext ctx)
     {
-        PascalParser.SimpleExpressionContext simpleCtx1 =
+        cppParser.SimpleExpressionContext simpleCtx1 =
                                                 ctx.simpleExpression().get(0);
 
         // First simple expression.
         visit(simpleCtx1);
-        
+
         Typespec simpleType1 = simpleCtx1.type;
         ctx.type = simpleType1;
-        
-        PascalParser.RelOpContext relOpCtx = ctx.relOp();
-        
+
+        cppParser.RelOpContext relOpCtx = ctx.relOp();
+
         // Second simple expression?
         if (relOpCtx != null)
         {
-            PascalParser.SimpleExpressionContext simpleCtx2 = 
+            cppParser.SimpleExpressionContext simpleCtx2 =
                                                 ctx.simpleExpression().get(1);
             visit(simpleCtx2);
-            
+
             Typespec simpleType2 = simpleCtx2.type;
             if (!TypeChecker.areComparisonCompatible(simpleType1, simpleType2))
             {
                 error.flag(INCOMPATIBLE_COMPARISON, ctx);
             }
-            
+
             ctx.type = Predefined.booleanType;
         }
-        
+
         return null;
     }
 
-    @Override 
-    public Object visitSimpleExpression(PascalParser.SimpleExpressionContext ctx) 
+    @Override
+    public Object visitSimpleExpression(cppParser.SimpleExpressionContext ctx)
     {
         int count = ctx.term().size();
-        PascalParser.SignContext signCtx = ctx.sign();
+        cppParser.SignContext signCtx = ctx.sign();
         Boolean hasSign = signCtx != null;
-        PascalParser.TermContext termCtx1 = ctx.term().get(0);
-        
+        cppParser.TermContext termCtx1 = ctx.term().get(0);
+
         if (hasSign)
         {
             String sign = signCtx.getText();
@@ -1138,27 +1138,27 @@ public class Semantics extends PascalBaseVisitor<Object>
                 error.flag(INVALID_SIGN, signCtx);
             }
         }
-        
+
         // First term.
         visit(termCtx1);
-        Typespec termType1 = termCtx1.type;        
-        
+        Typespec termType1 = termCtx1.type;
+
         // Loop over any subsequent terms.
         for (int i = 1; i < count; i++)
         {
             String op = ctx.addOp().get(i-1).getText().toLowerCase();
-            PascalParser.TermContext termCtx2 = ctx.term().get(i);
+            cppParser.TermContext termCtx2 = ctx.term().get(i);
             visit(termCtx2);
             Typespec termType2 = termCtx2.type;
-            
+
             // Both operands boolean ==> boolean result. Else type mismatch.
             if (op.equals("or"))
             {
-                if (!TypeChecker.isBoolean(termType1)) 
+                if (!TypeChecker.isBoolean(termType1))
                 {
                     error.flag(TYPE_MUST_BE_BOOLEAN, termCtx1);
                 }
-                if (!TypeChecker.isBoolean(termType2)) 
+                if (!TypeChecker.isBoolean(termType2))
                 {
                     error.flag(TYPE_MUST_BE_BOOLEAN, termCtx2);
                 }
@@ -1166,28 +1166,28 @@ public class Semantics extends PascalBaseVisitor<Object>
                 {
                     error.flag(INVALID_SIGN, signCtx);
                 }
-                
+
                 termType2 = Predefined.booleanType;
             }
             else if (op.equals("+"))
             {
                 // Both operands integer ==> integer result
-                if (TypeChecker.areBothInteger(termType1, termType2)) 
+                if (TypeChecker.areBothInteger(termType1, termType2))
                 {
                     termType2 = Predefined.integerType;
                 }
 
-                // Both real operands ==> real result 
+                // Both real operands ==> real result
                 // One real and one integer operand ==> real result
-                else if (TypeChecker.isAtLeastOneReal(termType1, termType2)) 
+                else if (TypeChecker.isAtLeastOneReal(termType1, termType2))
                 {
                     termType2 = Predefined.realType;
                 }
-                
+
                 // Both operands string ==> string result
                 else if (TypeChecker.areBothString(termType1, termType2))
                 {
-                    if (hasSign) error.flag(INVALID_SIGN, signCtx);                    
+                    if (hasSign) error.flag(INVALID_SIGN, signCtx);
                     termType2 = Predefined.stringType;
                 }
 
@@ -1209,18 +1209,18 @@ public class Semantics extends PascalBaseVisitor<Object>
             else  // -
             {
                 // Both operands integer ==> integer result
-                if (TypeChecker.areBothInteger(termType1, termType2)) 
+                if (TypeChecker.areBothInteger(termType1, termType2))
                 {
                     termType2 = Predefined.integerType;
                 }
 
-                // Both real operands ==> real result 
+                // Both real operands ==> real result
                 // One real and one integer operand ==> real result
-                else if (TypeChecker.isAtLeastOneReal(termType1, termType2)) 
+                else if (TypeChecker.isAtLeastOneReal(termType1, termType2))
                 {
                     termType2 = Predefined.realType;
                 }
-                
+
                 // Type mismatch.
                 else
                 {
@@ -1236,47 +1236,47 @@ public class Semantics extends PascalBaseVisitor<Object>
                     }
                 }
             }
-            
+
             termType1 = termType2;
         }
-        
+
         ctx.type = termType1;
         return null;
     }
 
-    @Override 
-    public Object visitTerm(PascalParser.TermContext ctx) 
+    @Override
+    public Object visitTerm(cppParser.TermContext ctx)
     {
         int count = ctx.factor().size();
-        PascalParser.FactorContext factorCtx1 = ctx.factor().get(0);
-        
+        cppParser.FactorContext factorCtx1 = ctx.factor().get(0);
+
         // First factor.
         visit(factorCtx1);
-        Typespec factorType1 = factorCtx1.type; 
-        
+        Typespec factorType1 = factorCtx1.type;
+
         // Loop over any subsequent factors.
         for (int i = 1; i < count; i++)
         {
             String op = ctx.mulOp().get(i-1).getText().toLowerCase();
-            PascalParser.FactorContext factorCtx2 = ctx.factor().get(i);
+            cppParser.FactorContext factorCtx2 = ctx.factor().get(i);
             visit(factorCtx2);
             Typespec factorType2 = factorCtx2.type;
-            
+
             if (op.equals("*"))
             {
                 // Both operands integer  ==> integer result
-                if (TypeChecker.areBothInteger(factorType1, factorType2)) 
+                if (TypeChecker.areBothInteger(factorType1, factorType2))
                 {
                     factorType2 = Predefined.integerType;
                 }
 
-                // Both real operands ==> real result 
+                // Both real operands ==> real result
                 // One real and one integer operand ==> real result
-                else if (TypeChecker.isAtLeastOneReal(factorType1, factorType2)) 
+                else if (TypeChecker.isAtLeastOneReal(factorType1, factorType2))
                 {
                     factorType2 = Predefined.realType;
                 }
-                
+
                 // Type mismatch.
                 else
                 {
@@ -1300,9 +1300,9 @@ public class Semantics extends PascalBaseVisitor<Object>
                 {
                     factorType2 = Predefined.realType;
                 }
-                
+
                 // Type mismatch.
-                else 
+                else
                 {
                     if (!TypeChecker.isIntegerOrReal(factorType1))
                     {
@@ -1344,7 +1344,7 @@ public class Semantics extends PascalBaseVisitor<Object>
                     factorType2 = Predefined.booleanType;
                 }
             }
-            
+
             factorType1 = factorType2;
         }
 
@@ -1352,22 +1352,22 @@ public class Semantics extends PascalBaseVisitor<Object>
         return null;
     }
 
-    @Override 
-    public Object visitVariableFactor(PascalParser.VariableFactorContext ctx) 
+    @Override
+    public Object visitVariableFactor(cppParser.VariableFactorContext ctx)
     {
-        PascalParser.VariableContext varCtx = ctx.variable();
-        visit(varCtx);        
+        cppParser.VariableContext varCtx = ctx.variable();
+        visit(varCtx);
         ctx.type  = varCtx.type;
-        
+
         return null;
     }
 
-    @Override 
-    public Object visitVariable(PascalParser.VariableContext ctx) 
+    @Override
+    public Object visitVariable(cppParser.VariableContext ctx)
     {
-        PascalParser.VariableIdentifierContext varIdCtx = 
+        cppParser.VariableIdentifierContext varIdCtx =
                                                     ctx.variableIdentifier();
-        
+
         visit(varIdCtx);
         ctx.entry = varIdCtx.entry;
         ctx.type  = variableDatatype(ctx, varIdCtx.type);
@@ -1375,20 +1375,20 @@ public class Semantics extends PascalBaseVisitor<Object>
         return null;
     }
 
-    @Override 
+    @Override
     public Object visitVariableIdentifier(
-                                    PascalParser.VariableIdentifierContext ctx) 
+                                    cppParser.VariableIdentifierContext ctx)
     {
         String variableName = ctx.IDENTIFIER().getText().toLowerCase();
         SymtabEntry variableId = symtabStack.lookup(variableName);
-        
+
         if (variableId != null)
         {
             int lineNumber = ctx.getStart().getLine();
             ctx.type = variableId.getType();
             ctx.entry = variableId;
             variableId.appendLineNumber(lineNumber);
-            
+
             Kind kind = variableId.getKind();
             switch (kind)
             {
@@ -1399,7 +1399,7 @@ public class Semantics extends PascalBaseVisitor<Object>
                 case UNDEFINED:
                     error.flag(INVALID_VARIABLE, ctx);
                     break;
-                    
+
                 default: break;
             }
         }
@@ -1419,33 +1419,33 @@ public class Semantics extends PascalBaseVisitor<Object>
      * @return the datatype with any modifiers.
      */
     private Typespec variableDatatype(
-                        PascalParser.VariableContext varCtx, Typespec varType)
+                        cppParser.VariableContext varCtx, Typespec varType)
     {
         Typespec type = varType;
-        
+
         // Loop over the modifiers.
-        for (PascalParser.ModifierContext modCtx : varCtx.modifier())
+        for (cppParser.ModifierContext modCtx : varCtx.modifier())
         {
             // Subscripts.
             if (modCtx.indexList() != null)
             {
-                PascalParser.IndexListContext indexListCtx = modCtx.indexList();
-                
+                cppParser.IndexListContext indexListCtx = modCtx.indexList();
+
                 // Loop over the subscripts.
-                for (PascalParser.IndexContext indexCtx : indexListCtx.index())
+                for (cppParser.IndexContext indexCtx : indexListCtx.index())
                 {
                     if (type.getForm() == ARRAY)
                     {
                         Typespec indexType = type.getArrayIndexType();
-                        PascalParser.ExpressionContext exprCtx = 
+                        cppParser.ExpressionContext exprCtx =
                                                         indexCtx.expression();
                         visit(exprCtx);
-                        
+
                         if (indexType.baseType() != exprCtx.type.baseType())
                         {
                             error.flag(TYPE_MISMATCH, exprCtx);
                         }
-                        
+
                         // Datatype of the next dimension.
                         type = type.getArrayElementType();
                     }
@@ -1460,84 +1460,84 @@ public class Semantics extends PascalBaseVisitor<Object>
                 if (type.getForm() == RECORD)
                 {
                     Symtab symtab = type.getRecordSymtab();
-                    PascalParser.FieldContext fieldCtx = modCtx.field();
-                    String fieldName = 
+                    cppParser.FieldContext fieldCtx = modCtx.field();
+                    String fieldName =
                                 fieldCtx.IDENTIFIER().getText().toLowerCase();
                     SymtabEntry fieldId = symtab.lookup(fieldName);
 
                     // Field of the record type?
-                    if (fieldId != null) 
+                    if (fieldId != null)
                     {
                         type = fieldId.getType();
                         fieldCtx.entry = fieldId;
                         fieldCtx.type = type;
                         fieldId.appendLineNumber(modCtx.getStart().getLine());
                     }
-                    else 
+                    else
                     {
                         error.flag(INVALID_FIELD, modCtx);
                     }
                 }
-                
+
                 // Not a record variable.
-                else 
+                else
                 {
                     error.flag(INVALID_FIELD, modCtx);
                 }
             }
         }
-        
+
         return type;
     }
-    
-    @Override 
-    public Object visitNumberFactor(PascalParser.NumberFactorContext ctx) 
+
+    @Override
+    public Object visitNumberFactor(cppParser.NumberFactorContext ctx)
     {
-        PascalParser.NumberContext          numberCtx   = ctx.number();
-        PascalParser.UnsignedNumberContext  unsignedCtx = numberCtx.unsignedNumber();
-        PascalParser.IntegerConstantContext integerCtx  = unsignedCtx.integerConstant();
+        cppParser.NumberContext          numberCtx   = ctx.number();
+        cppParser.UnsignedNumberContext  unsignedCtx = numberCtx.unsignedNumber();
+        cppParser.IntegerConstantContext integerCtx  = unsignedCtx.integerConstant();
 
         ctx.type = (integerCtx != null) ? Predefined.integerType
                                         : Predefined.realType;
-        
+
         return null;
     }
 
-    @Override 
+    @Override
     public Object visitCharacterFactor(
-                                    PascalParser.CharacterFactorContext ctx) 
+                                    cppParser.CharacterFactorContext ctx)
     {
         ctx.type = Predefined.charType;
         return null;
     }
 
-    @Override 
-    public Object visitStringFactor(PascalParser.StringFactorContext ctx) 
+    @Override
+    public Object visitStringFactor(cppParser.StringFactorContext ctx)
     {
         ctx.type = Predefined.stringType;
         return null;
     }
 
-    @Override 
-    public Object visitNotFactor(PascalParser.NotFactorContext ctx) 
+    @Override
+    public Object visitNotFactor(cppParser.NotFactorContext ctx)
     {
-        PascalParser.FactorContext factorCtx = ctx.factor();
+        cppParser.FactorContext factorCtx = ctx.factor();
         visit(factorCtx);
-        
+
         if (factorCtx.type != Predefined.booleanType)
         {
             error.flag(TYPE_MUST_BE_BOOLEAN, factorCtx);
         }
-        
+
         ctx.type = Predefined.booleanType;
         return null;
     }
 
-    @Override 
+    @Override
     public Object visitParenthesizedFactor(
-                                    PascalParser.ParenthesizedFactorContext ctx) 
+                                    cppParser.ParenthesizedFactorContext ctx)
     {
-        PascalParser.ExpressionContext exprCtx = ctx.expression();
+        cppParser.ExpressionContext exprCtx = ctx.expression();
         visit(exprCtx);
         ctx.type = exprCtx.type;
 
