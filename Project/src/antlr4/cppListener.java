@@ -1,4 +1,4 @@
-// Generated from D:/Download/cs153/Project/untitled/cpp.g4 by ANTLR 4.13.1
+// Generated from C:/Users/10333642/Desktop/CS153/Project/Project/cpp.g4 by ANTLR 4.13.1
 
     package antlr4;
     import java.util.HashMap;
@@ -52,6 +52,16 @@ public interface cppListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitProgramIdentifier(cppParser.ProgramIdentifierContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link cppParser#intMain}.
+	 * @param ctx the parse tree
+	 */
+	void enterIntMain(cppParser.IntMainContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link cppParser#intMain}.
+	 * @param ctx the parse tree
+	 */
+	void exitIntMain(cppParser.IntMainContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link cppParser#block}.
 	 * @param ctx the parse tree
@@ -564,66 +574,6 @@ public interface cppListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitFalseStatement(cppParser.FalseStatementContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link cppParser#caseStatement}.
-	 * @param ctx the parse tree
-	 */
-	void enterCaseStatement(cppParser.CaseStatementContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link cppParser#caseStatement}.
-	 * @param ctx the parse tree
-	 */
-	void exitCaseStatement(cppParser.CaseStatementContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link cppParser#caseBranchList}.
-	 * @param ctx the parse tree
-	 */
-	void enterCaseBranchList(cppParser.CaseBranchListContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link cppParser#caseBranchList}.
-	 * @param ctx the parse tree
-	 */
-	void exitCaseBranchList(cppParser.CaseBranchListContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link cppParser#caseBranch}.
-	 * @param ctx the parse tree
-	 */
-	void enterCaseBranch(cppParser.CaseBranchContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link cppParser#caseBranch}.
-	 * @param ctx the parse tree
-	 */
-	void exitCaseBranch(cppParser.CaseBranchContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link cppParser#caseConstantList}.
-	 * @param ctx the parse tree
-	 */
-	void enterCaseConstantList(cppParser.CaseConstantListContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link cppParser#caseConstantList}.
-	 * @param ctx the parse tree
-	 */
-	void exitCaseConstantList(cppParser.CaseConstantListContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link cppParser#caseConstant}.
-	 * @param ctx the parse tree
-	 */
-	void enterCaseConstant(cppParser.CaseConstantContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link cppParser#caseConstant}.
-	 * @param ctx the parse tree
-	 */
-	void exitCaseConstant(cppParser.CaseConstantContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link cppParser#repeatStatement}.
-	 * @param ctx the parse tree
-	 */
-	void enterRepeatStatement(cppParser.RepeatStatementContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link cppParser#repeatStatement}.
-	 * @param ctx the parse tree
-	 */
-	void exitRepeatStatement(cppParser.RepeatStatementContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link cppParser#whileStatement}.
 	 * @param ctx the parse tree

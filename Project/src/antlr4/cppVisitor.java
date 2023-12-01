@@ -1,4 +1,4 @@
-// Generated from D:/Download/cs153/Project/untitled/cpp.g4 by ANTLR 4.13.1
+// Generated from C:/Users/10333642/Desktop/CS153/Project/Project/cpp.g4 by ANTLR 4.13.1
 
     package antlr4;
     import java.util.HashMap;
@@ -39,6 +39,12 @@ public interface cppVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitProgramIdentifier(cppParser.ProgramIdentifierContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link cppParser#intMain}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitIntMain(cppParser.IntMainContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link cppParser#block}.
 	 * @param ctx the parse tree
@@ -345,42 +351,6 @@ public interface cppVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitFalseStatement(cppParser.FalseStatementContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link cppParser#caseStatement}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitCaseStatement(cppParser.CaseStatementContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link cppParser#caseBranchList}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitCaseBranchList(cppParser.CaseBranchListContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link cppParser#caseBranch}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitCaseBranch(cppParser.CaseBranchContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link cppParser#caseConstantList}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitCaseConstantList(cppParser.CaseConstantListContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link cppParser#caseConstant}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitCaseConstant(cppParser.CaseConstantContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link cppParser#repeatStatement}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitRepeatStatement(cppParser.RepeatStatementContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link cppParser#whileStatement}.
 	 * @param ctx the parse tree

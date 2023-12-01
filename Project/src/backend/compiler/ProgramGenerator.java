@@ -207,7 +207,7 @@ public class ProgramGenerator extends CodeGenerator
 
         // Emit code for the compound statement.
         emitLine();
-        compiler.visit(ctx.block().compoundStatement());
+        compiler.visit(ctx.block().intMain().compoundStatement());
 
         emitMainEpilogue();
     }

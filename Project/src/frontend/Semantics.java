@@ -62,7 +62,7 @@ public class Semantics extends cppBaseVisitor<Object>
     {
         visit(ctx.programHeader());
         visit(ctx.block().declarations());
-        visit(ctx.block().compoundStatement());
+        visit(ctx.block().intMain().compoundStatement());
 
         // Print the cross-reference table.
         CrossReferencer crossReferencer = new CrossReferencer();
@@ -647,8 +647,8 @@ public class Semantics extends cppBaseVisitor<Object>
             assocVarId.setType(returnType);
         }
 
-        visit(ctx.block().compoundStatement());
-        routineId.setExecutable(ctx.block().compoundStatement());
+        visit(ctx.block().intMain().compoundStatement());
+        routineId.setExecutable(ctx.block().intMain().compoundStatement());
 
         symtabStack.pop();
         return null;
@@ -770,95 +770,6 @@ public class Semantics extends cppBaseVisitor<Object>
         visit(trueCtx);
         if (falseCtx != null) visit(falseCtx);
 
-        return null;
-    }
-
-    @Override
-    public Object visitCaseStatement(cppParser.CaseStatementContext ctx)
-    {
-        cppParser.ExpressionContext exprCtx = ctx.expression();
-        visit(exprCtx);
-        Typespec exprType = exprCtx.type;
-        Form exprTypeForm = exprType.getForm();
-
-        if (   (   (exprTypeForm != SCALAR)
-                && (exprTypeForm != ENUMERATION)
-                && (exprTypeForm != SUBRANGE))
-            || (exprType == Predefined.realType)
-            || (exprType == Predefined.stringType))
-        {
-            error.flag(TYPE_MISMATCH, exprCtx);
-            exprType = Predefined.integerType;
-        }
-
-        HashSet<Integer> constants = new HashSet<>();
-        cppParser.CaseBranchListContext branchListCtx = ctx.caseBranchList();
-
-        // Loop over the CASE branches.
-        for (cppParser.CaseBranchContext branchCtx :
-                                                    branchListCtx.caseBranch())
-        {
-            cppParser.CaseConstantListContext constListCtx =
-                                                    branchCtx.caseConstantList();
-            cppParser.StatementContext stmtCtx = branchCtx.statement();
-
-            if (constListCtx != null)
-            {
-                // Loop over the CASE constants in each branch.
-                for (cppParser.CaseConstantContext caseConstCtx :
-                                                    constListCtx.caseConstant())
-                {
-                    cppParser.ConstantContext constCtx =
-                                                        caseConstCtx.constant();
-                    Object constValue = visit(constCtx);
-
-                    caseConstCtx.type  = constCtx.type;
-                    caseConstCtx.value = 0;
-
-                    if (constCtx.type != exprType)
-                    {
-                        error.flag(TYPE_MISMATCH, constCtx);
-                    }
-                    else if (   (constCtx.type == Predefined.integerType)
-                             || (constCtx.type.getForm() == ENUMERATION))
-                    {
-                        caseConstCtx.value = (Integer) constValue;
-                    }
-                    else if (constCtx.type == Predefined.charType)
-                    {
-                        caseConstCtx.value = (Character) constValue;
-                    }
-
-                    if (constants.contains(caseConstCtx.value))
-                    {
-                        error.flag(DUPLICATE_CASE_CONSTANT, constCtx);
-                    }
-                    else
-                    {
-                        constants.add(caseConstCtx.value);
-                    }
-                }
-            }
-
-            if (stmtCtx != null) visit(stmtCtx);
-        }
-
-        return null;
-    }
-
-    @Override
-    public Object visitRepeatStatement(cppParser.RepeatStatementContext ctx)
-    {
-        cppParser.ExpressionContext exprCtx = ctx.expression();
-        visit(exprCtx);
-        Typespec exprType = exprCtx.type;
-
-        if (!TypeChecker.isBoolean(exprType))
-        {
-            error.flag(TYPE_MUST_BE_BOOLEAN, exprCtx);
-        }
-
-        visit(ctx.statementList());
         return null;
     }
 
