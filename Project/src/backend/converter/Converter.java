@@ -73,7 +73,7 @@ public class Converter extends cppBaseVisitor<Object>
         code.emitLine();
 
         // Main compound statement.
-        visit(ctx.block().compoundStatement().statementList());
+        visit(ctx.block().intMain().compoundStatement().statementList());
 
         // Print the execution time.
         code.emitLine();
@@ -385,7 +385,7 @@ public class Converter extends cppBaseVisitor<Object>
         emitAllocateStructuredVariables("", idCtx.entry.getRoutineSymtab());
         code.emitLine();
 
-        visit(ctx.block().compoundStatement().statementList());
+        visit(ctx.block().intMain().compoundStatement().statementList());
 
         if (functionDefinition)
         {
@@ -658,81 +658,25 @@ public class Converter extends cppBaseVisitor<Object>
         {
             code.emitStart("else ");
 
-            boolean falseIf = falseCtx.statement().ifStatement() != null;
-            boolean falseCompound =
-                            falseCtx.statement().compoundStatement() != null;
+            //boolean falseIf = falseCtx.statement().ifStatement() != null;
+            //boolean falseCompound = falseCtx.statement().compoundStatement() != null;
+
+            boolean falseIf = falseCtx.statement() != null;
+            boolean falseCompound = falseCtx.statement() != null;
 
             if (!falseIf)
             {
-                if (!falseCompound) code.indent();
+                if (!falseCompound) {
+                    code.indent();
+                }
                 code.emitStart();
             }
 
             visit(falseCtx);
-            if (!(falseIf || falseCompound)) code.dedent();
-        }
-
-        return null;
-    }
-
-    @Override
-    public Object visitCaseStatement(cppParser.CaseStatementContext ctx)
-    {
-        code.emit("switch (" + visit(ctx.expression()) + ")");
-        code.emitLine("{");
-
-        if (ctx.caseBranchList() != null)
-        {
-            code.indent();
-            visit(ctx.caseBranchList());
-            code.dedent();
-        }
-
-        code.emitLine("}");
-        return null;
-    }
-
-    @Override
-    public Object visitCaseBranch(cppParser.CaseBranchContext ctx)
-    {
-        cppParser.CaseConstantListContext listCtx = ctx.caseConstantList();
-
-        if (listCtx != null)
-        {
-            // Loop over this branch's constants.
-            for (cppParser.CaseConstantContext constCtx :
-                                                        listCtx.caseConstant())
-            {
-                code.emitLine("case " + constCtx.getText().toLowerCase() + ":");
+            if (!(falseIf || falseCompound)) {
+                code.dedent();
             }
-
-            code.indent();
-            code.emitStart();
-            visit(ctx.statement());
-            code.emitLine("break;");
-            code.dedent();
         }
-
-        return null;
-    }
-
-    @Override
-    public Object visitRepeatStatement(cppParser.RepeatStatementContext ctx)
-    {
-        boolean needBraces = ctx.statementList().statement().size() > 1;
-
-        code.emit("do");
-        if (needBraces) code.emitLine("{");
-        code.indent();
-
-        visit(ctx.statementList());
-
-        code.dedent();
-        if (needBraces) code.emitLine("}");
-
-        code.emitStart("while (!(");
-        code.emit((String) visit(ctx.expression()));
-        code.emitEnd("));");
 
         return null;
     }

@@ -118,20 +118,6 @@ public class Compiler extends cppBaseVisitor<Object>
     }
 
     @Override
-    public Object visitCaseStatement(cppParser.CaseStatementContext ctx)
-    {
-        statementCode.emitCase(ctx);
-        return null;
-    }
-
-    @Override
-    public Object visitRepeatStatement(cppParser.RepeatStatementContext ctx)
-    {
-        statementCode.emitRepeat(ctx);
-        return null;
-    }
-
-    @Override
     public Object visitWhileStatement(cppParser.WhileStatementContext ctx)
     {
         statementCode.emitWhile(ctx);

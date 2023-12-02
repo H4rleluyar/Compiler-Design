@@ -75,7 +75,7 @@ public class ExpressionGenerator extends CodeGenerator
             {
                 emitSimpleExpression(simpleCtx2);
 
-                if      (op.equals("=" )) emit(IF_ICMPEQ, trueLabel);
+                if      (op.equals("==" )) emit(IF_ICMPEQ, trueLabel);
                 else if (op.equals("<>")) emit(IF_ICMPNE, trueLabel);
                 else if (op.equals("<" )) emit(IF_ICMPLT, trueLabel);
                 else if (op.equals("<=")) emit(IF_ICMPLE, trueLabel);
@@ -90,7 +90,7 @@ public class ExpressionGenerator extends CodeGenerator
 
                 emit(FCMPG);
 
-                if      (op.equals("=" )) emit(IFEQ, trueLabel);
+                if      (op.equals("==" )) emit(IFEQ, trueLabel);
                 else if (op.equals("<>")) emit(IFNE, trueLabel);
                 else if (op.equals("<" )) emit(IFLT, trueLabel);
                 else if (op.equals("<=")) emit(IFLE, trueLabel);
@@ -104,7 +104,7 @@ public class ExpressionGenerator extends CodeGenerator
                      "java/lang/String.compareTo(Ljava/lang/String;)I");
                 localStack.decrease(1);
 
-                if      (op.equals("=" )) emit(IFEQ, trueLabel);
+                if      (op.equals("==" )) emit(IFEQ, trueLabel);
                 else if (op.equals("<>")) emit(IFNE, trueLabel);
                 else if (op.equals("<" )) emit(IFLT, trueLabel);
                 else if (op.equals("<=")) emit(IFLE, trueLabel);

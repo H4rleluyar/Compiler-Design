@@ -7,14 +7,15 @@ grammar cpp;
     import intermediate.type.Typespec;
 }
 
-program           : programHeader block '.' ;
+program           : programHeader block ;
 programHeader     : PROGRAM programIdentifier programParameters? ';' ;
 programParameters : '(' IDENTIFIER ( ',' IDENTIFIER )* ')' ;
 
 programIdentifier   locals [ SymtabEntry entry = null ]
     : IDENTIFIER ;
 
-block         : declarations compoundStatement ;
+intMain       : INT MAIN '(' ')' compoundStatement;
+block         : declarations intMain ;
 declarations  : ( constantsPart ';' )? ( typesPart ';' )?
               ( variablesPart ';' )? ( routinesPart ';')? ;
 
@@ -89,51 +90,37 @@ parameterIdentifierList   : parameterIdentifier ( ',' parameterIdentifier )* ;
 parameterIdentifier   locals [ Typespec type = null, SymtabEntry entry = null ]
     : IDENTIFIER ;
 
-statement : compoundStatement
-          | assignmentStatement
-          | ifStatement
-          | caseStatement
-          | repeatStatement
-          | whileStatement
-          | forStatement
+statement : ( assignmentStatement
           | writeStatement
           | writelnStatement
           | readStatement
           | readlnStatement
           | procedureCallStatement
-          | emptyStatement
+          | emptyStatement ) ';'
+          | compoundStatement
+          | ifStatement
+          | whileStatement
+          | forStatement
           ;
 
-compoundStatement : INTMAIN statementList END ;
+compoundStatement : '{' statementList '}';
 emptyStatement : ;
 
-statementList       : statement ( ';' statement )* ;
-assignmentStatement : lhs ':=' rhs ;
+statementList       : statement ( statement )* ;
+//assignmentStatement : lhs ':=' rhs ; //pascal version
+assignmentStatement : lhs '=' rhs ; //temp c++ version
 
 lhs locals [ Typespec type = null ]
     : variable ;
 rhs : expression ;
 
-ifStatement : IF '(' expression ')' '{' trueStatement '}' (ELSE '{' falseStatement '}')?;
+ifStatement : IF '(' expression ')' trueStatement (ELSE falseStatement)? ;
 trueStatement  : statement ;
 falseStatement : statement ;
 
-caseStatement
-    locals [ HashMap<Integer, cppParser.StatementContext> jumpTable = null ]
-    : CASE expression OF caseBranchList END ;
-
-caseBranchList   : caseBranch ( ';' caseBranch )* ;
-caseBranch       : caseConstantList ':' statement | ;
-caseConstantList : caseConstant ( ',' caseConstant )* ;
-
-caseConstant    locals [ Typespec type = null, int value = 0 ]
-    : constant ;
-
-repeatStatement : REPEAT statementList UNTIL expression ;
 whileStatement : WHILE '(' expression ')' statement ;
 
-forStatement : FOR variable ':=' expression
-                    ( TO | DOWNTO ) expression DO statement ;
+forStatement : FOR variable ':=' expression ( TO | DOWNTO ) expression DO statement ;
 
 procedureCallStatement : procedureName '(' argumentList? ')' ;
 
@@ -143,7 +130,7 @@ procedureName   locals [ SymtabEntry entry = null ]
 argumentList : argument ( ',' argument )* ;
 argument     : expression ;
 
-writeStatement   : COUT writeArguments ';';
+writeStatement   : COUT writeArguments;
 writelnStatement : WRITELN writeArguments? ;
 writeArguments   : '<<' writeArgument (',' writeArgument)* ;
 writeArgument    : expression (':' fieldWidth)? ;
@@ -194,7 +181,7 @@ realConstant    : REAL;
 characterConstant : CHARACTER ;
 stringConstant    : STRING ;
 
-relOp : '==' | '<>' | '<' | '<=' | '>' | '>=' ;
+relOp : '==' | '<>' | '<' | '<=' | '>' | '>=';
 addOp : '+' | '-' | OR ;
 mulOp : '*' | '/' | DIV | MOD | AND ;
 
@@ -226,31 +213,30 @@ fragment Y : ('y' | 'Y') ;
 fragment Z : ('z' | 'Z') ;
 
 PROGRAM   : P R O G R A M ;
+INT       : I N T ;
+MAIN      : M A I N ;
 CONST     : C O N S T ;
 TYPE      : T Y P E ;
 ARRAY     : A R R A Y ;
 OF        : O F ;
 RECORD    : R E C O R D ;
 VAR       : V A R ;
-INTMAIN     : 'int main(){' ;
 END       : E N D ;
 DIV       : D I V ;
 MOD       : M O D ;
 AND       : A N D ;
 OR        : O R ;
 NOT       : N O T ;
-IF        : 'if';
+IF        : I F;
 THEN      : T H E N ;
-ELSE      : 'else';
-CASE      : C A S E ;
-REPEAT    : R E P E A T ;
+ELSE      : E L S E;
 UNTIL     : U N T I L ;
-WHILE     : 'while';
+WHILE     : W H I L E;
 DO        : D O ;
-FOR       : 'for';
+FOR       : F O R;
 TO        : T O ;
 DOWNTO    : D O W N T O ;
-COUT     : 'cout' ;
+COUT      : C O U T ;
 WRITELN   : W R I T E L N ;
 READ      : R E A D ;
 READLN    : R E A D L N ;
@@ -268,13 +254,13 @@ REAL       : INTEGER '.' INTEGER
 NEWLINE : '\r'? '\n' -> skip  ;
 WS      : [ \t]+ -> skip ;
 
-QUOTE     : '\'' ;
+QUOTE     : '"' ;
 CHARACTER : QUOTE CHARACTER_CHAR QUOTE ;
 STRING    : QUOTE STRING_CHAR* QUOTE ;
 
-fragment CHARACTER_CHAR : ~('\'')   // any non-quote character
+fragment CHARACTER_CHAR : ~('"')   // any non-quote character
                         ;
 
 fragment STRING_CHAR : QUOTE QUOTE  // two consecutive quotes
-                     | ~('\'')      // any non-quote character
+                     | ~('"')      // any non-quote character
                      ;

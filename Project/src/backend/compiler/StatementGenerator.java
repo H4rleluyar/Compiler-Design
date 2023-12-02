@@ -91,7 +91,6 @@ public class StatementGenerator extends CodeGenerator {
      * @param ctx the IfStatementContext.
      */
     public void emitIf(cppParser.IfStatementContext ctx) {
-        /***** Complete this method. *****/
         cppParser.TrueStatementContext tctx = ctx.trueStatement();
         cppParser.FalseStatementContext fctx = ctx.falseStatement();
         Label exitloop = new Label();
@@ -113,71 +112,6 @@ public class StatementGenerator extends CodeGenerator {
         }
 
         emitLabel(exitloop);
-    }
-
-    /**
-     * Emit code for a CASE statement.
-     *
-     * @param ctx the CaseStatementContext.
-     */
-    public void emitCase(cppParser.CaseStatementContext ctx) {
-        /***** Complete this method. *****/ // Jerry
-        HashMap<Label, cppParser.StatementContext> jumpBranches = new HashMap();
-
-        // Constant expression
-        compiler.visit(ctx.expression());
-        emit(ILOAD_0);
-
-        // Jump switch map
-        emit(LOOKUPSWITCH);
-        Label defaultLabel = new Label();
-        for (Object branch : ctx.caseBranchList().children) {
-            if (branch.getClass() == cppParser.CaseBranchContext.class) {
-                cppParser.CaseConstantListContext constantListContext = ((cppParser.CaseBranchContext) branch).caseConstantList();
-                if (constantListContext == null) continue;
-                Label branchLabel = new Label();
-
-                // Write all constants under one branch
-                for (Object constant : constantListContext.children) {
-                    if (constant.getClass() == cppParser.CaseConstantContext.class) {
-                        cppParser.ConstantContext constantContext = ((cppParser.CaseConstantContext) constant).constant();
-                        emitLabel(constantContext.value.toString(), branchLabel);
-                    }
-                }
-                jumpBranches.put(branchLabel, ((cppParser.CaseBranchContext) branch).statement());
-            }
-        }
-        emitLabel("default", defaultLabel);
-
-        // Jump Target Label with statements
-        for (Label label : jumpBranches.keySet()) {
-            emitLabel(label);
-            compiler.visit(jumpBranches.get(label));
-            emit(GOTO, defaultLabel); // skip to default so we don't fall through I think?
-        }
-
-        // Default
-        // I tested parsing a dangle default statement and it gave an error so I'll assume we don't care about it in compilation.
-        emitLabel(defaultLabel);
-    }
-
-    /**
-     * Emit code for a REPEAT statement.
-     *
-     * @param ctx the RepeatStatementContext.
-     */
-    public void emitRepeat(cppParser.RepeatStatementContext ctx) {
-        Label loopTopLabel = new Label();
-        Label loopExitLabel = new Label();
-
-        emitLabel(loopTopLabel);
-
-        compiler.visit(ctx.statementList());
-        compiler.visit(ctx.expression());
-        emit(IFNE, loopExitLabel);
-        emit(GOTO, loopTopLabel);
-
-        emitLabel(loopExitLabel);
     }
 
     /**

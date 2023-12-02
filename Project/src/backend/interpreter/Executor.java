@@ -42,7 +42,7 @@ public class Executor extends cppBaseVisitor<Object>
         StackFrame programFrame = new StackFrame(programId);
         runtimeStack.push(programFrame);
 
-        visit(ctx.block().compoundStatement());
+        visit(ctx.block().intMain().compoundStatement());
 
         long elapsedTime = System.currentTimeMillis() - startTime;
         System.out.printf("\n%,20d statements executed." +
@@ -123,85 +123,13 @@ public class Executor extends cppBaseVisitor<Object>
     }
 
     @Override
-    public Object visitIfStatement(cppParser.IfStatementContext ctx)
-    {
-        cppParser.TrueStatementContext  trueCtx  = ctx.trueStatement();
+    public Object visitIfStatement(cppParser.IfStatementContext ctx) {
+        cppParser.TrueStatementContext trueCtx = ctx.trueStatement();
         cppParser.FalseStatementContext falseCtx = ctx.falseStatement();
         boolean value = (Boolean) visit(ctx.expression());
 
-        if      (value)            visit(trueCtx);
+        if (value) visit(trueCtx);
         else if (falseCtx != null) visit(falseCtx);
-
-        return null;
-    }
-
-    @Override
-    public Object visitCaseStatement(cppParser.CaseStatementContext ctx)
-    {
-        cppParser.ExpressionContext exprCtx = ctx.expression();
-        cppParser.CaseBranchListContext branchListCtx = ctx.caseBranchList();
-
-        // First time: Create the jump table.
-        if (ctx.jumpTable == null)
-        {
-            ctx.jumpTable = createJumpTable(branchListCtx);
-        }
-
-        Object value = visit(exprCtx);
-        int intValue =
-                (exprCtx.type == Predefined.integerType) ? (Integer)   value
-                                                         : (Character) value;
-
-        // From the jump table obtain the statement corresponding to the value.
-        cppParser.StatementContext stmtCtx = ctx.jumpTable.get(intValue);
-        if (stmtCtx != null) visit(stmtCtx);
-
-        return null;
-    }
-
-    /**
-     * Create the jump table for a CASE statement.
-     * @param branchListCtx the CaseBranchListContext.
-     * @return the jump table.
-     */
-    private HashMap<Integer, cppParser.StatementContext> createJumpTable(
-                            cppParser.CaseBranchListContext branchListCtx)
-    {
-        HashMap<Integer, cppParser.StatementContext> table = new HashMap<>();
-
-        // Loop over the CASE branches.
-        for (cppParser.CaseBranchContext branchCtx :
-                                                    branchListCtx.caseBranch())
-        {
-            cppParser.CaseConstantListContext constListCtx =
-                                                    branchCtx.caseConstantList();
-            cppParser.StatementContext stmtCtx = branchCtx.statement();
-
-            if (constListCtx != null)
-            {
-                // Loop over the CASE constants of each CASE branch.
-                for (cppParser.CaseConstantContext caseConstCtx :
-                                                    constListCtx.caseConstant())
-                {
-                    table.put(caseConstCtx.value, stmtCtx);
-                }
-            }
-        }
-
-        return table;
-    }
-
-    @Override
-    public Object visitRepeatStatement(cppParser.RepeatStatementContext ctx)
-    {
-        cppParser.StatementListContext listCtx = ctx.statementList();
-        boolean value;
-
-        do
-        {
-            visit(listCtx);
-            value = (Boolean) visit(ctx.expression());
-        } while (!value);
 
         return null;
     }
