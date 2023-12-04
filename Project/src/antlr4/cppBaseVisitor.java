@@ -1,4 +1,4 @@
-// Generated from G:/CodeProjects/cs153working/project/cpp.g4 by ANTLR 4.13.1
+// Generated from C:/Users/10333642/Desktop/CS153/Project/Project/cpp.g4 by ANTLR 4.13.1
 
     package antlr4;
     import java.util.HashMap;
@@ -646,14 +646,14 @@ public class cppBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements cp
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitIntegerConstant(cppParser.IntegerConstantContext ctx) { return visitChildren(ctx); }
+	@Override public T visitIntConstant(cppParser.IntConstantContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitRealConstant(cppParser.RealConstantContext ctx) { return visitChildren(ctx); }
+	@Override public T visitDoubleConstant(cppParser.DoubleConstantContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *

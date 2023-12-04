@@ -28,8 +28,8 @@ public class Converter extends cppBaseVisitor<Object>
     static
     {
         typeNameTable = new Hashtable<>();
-        typeNameTable.put("integer", "int");
-        typeNameTable.put("real",    "double");
+        typeNameTable.put("int", "int");
+        typeNameTable.put("double",    "double");
         typeNameTable.put("boolean", "boolean");
         typeNameTable.put("char",    "char");
         typeNameTable.put("string",  "String");
@@ -1063,19 +1063,19 @@ public class Converter extends cppBaseVisitor<Object>
                                    && (fwCtx.sign().getText().equals("-")))
                                 ? "-" : "";
                     format.append(sign)
-                          .append(fwCtx.integerConstant().getText());
+                          .append(fwCtx.intConstant().getText());
 
                     cppParser.DecimalPlacesContext dpCtx =
                                                         fwCtx.decimalPlaces();
                     if (dpCtx != null)
                     {
                         format.append(".")
-                              .append(dpCtx.integerConstant().getText());
+                              .append(dpCtx.intConstant().getText());
                     }
                 }
 
-                String typeFlag = type == Predefined.integerType ? "d"
-                                : type == Predefined.realType    ? "f"
+                String typeFlag = type == Predefined.intType ? "d"
+                                : type == Predefined.doubleType    ? "f"
                                 : type == Predefined.booleanType ? "b"
                                 : type == Predefined.charType    ? "c"
                                 :                                  "s";
@@ -1179,8 +1179,8 @@ public class Converter extends cppBaseVisitor<Object>
             // Read any other value.
             else
             {
-                String typeName = type == Predefined.integerType ? "Int"
-                                : type == Predefined.realType    ? "Double"
+                String typeName = type == Predefined.intType ? "Int"
+                                : type == Predefined.doubleType    ? "Double"
                                 : type == Predefined.booleanType ? "Boolean"
                                 :                                  "";
 

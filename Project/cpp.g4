@@ -8,13 +8,14 @@ grammar cpp;
 }
 
 program           : programHeader block ;
-programHeader     : PROGRAM programIdentifier programParameters? ';' ;
+programHeader     : DIR_INCLUDE '<' programIdentifier '>' ;
+
 programParameters : '(' IDENTIFIER ( ',' IDENTIFIER )* ')' ;
 
 programIdentifier   locals [ SymtabEntry entry = null ]
     : IDENTIFIER ;
 
-intMain       : INT MAIN '(' ')' compoundStatement;
+intMain       : MAIN '(' ')' compoundStatement;
 block         : declarations intMain ;
 declarations  : ( constantsPart ';' )? ( typesPart ';' )?
               ( variablesPart ';' )? ( routinesPart ';')? ;
@@ -133,8 +134,8 @@ writeStatement   : COUT writeArguments;
 writelnStatement : WRITELN writeArguments? ;
 writeArguments   : '<<' writeArgument (',' writeArgument)* ;
 writeArgument    : expression (':' fieldWidth)? ;
-fieldWidth       : sign? integerConstant (':' decimalPlaces)? ;
-decimalPlaces    : integerConstant ;
+fieldWidth       : sign? intConstant (':' decimalPlaces)? ;
+decimalPlaces    : intConstant ;
 
 readStatement   : READ readArguments ;
 readlnStatement : READLN readArguments ;
@@ -174,9 +175,9 @@ functionName        locals [ Typespec type = null, SymtabEntry entry = null ]
     : IDENTIFIER ;
 
 number          : sign? unsignedNumber ;
-unsignedNumber  : integerConstant | realConstant ;
-integerConstant : INTEGER ;
-realConstant    : REAL;
+unsignedNumber  : intConstant | doubleConstant ;
+intConstant : INT ;
+doubleConstant    : DOUBLE;
 characterConstant : CHARACTER ;
 stringConstant    : STRING ;
 
@@ -211,43 +212,42 @@ fragment X : ('x' | 'X') ;
 fragment Y : ('y' | 'Y') ;
 fragment Z : ('z' | 'Z') ;
 
-PROGRAM   : P R O G R A M ;
-INT       : I N T ;
-MAIN      : M A I N ;
-CONST     : C O N S T ;
-TYPE      : T Y P E ;
-ARRAY     : A R R A Y ;
-OF        : O F ;
-RECORD    : R E C O R D ;
-VAR       : V A R ;
-END       : E N D ;
-DIV       : D I V ;
-MOD       : M O D ;
-AND       : A N D ;
-OR        : O R ;
-NOT       : N O T ;
-IF        : I F;
-THEN      : T H E N ;
-ELSE      : E L S E;
-UNTIL     : U N T I L ;
-WHILE     : W H I L E;
-DO        : D O ;
-FOR       : F O R;
-TO        : T O ;
-DOWNTO    : D O W N T O ;
-COUT      : C O U T ;
-WRITELN   : W R I T E L N ;
-READ      : R E A D ;
-READLN    : R E A D L N ;
-PROCEDURE : P R O C E D U R E ;
-FUNCTION  : F U N C T I O N ;
+DIR_INCLUDE : '#' I N C L U D E ;
+MAIN        : M A I N ;
+CONST       : C O N S T ;
+TYPE        : T Y P E ;
+ARRAY       : A R R A Y ;
+OF          : O F ;
+RECORD      : R E C O R D ;
+VAR         : V A R ;
+END         : E N D ;
+DIV         : D I V ;
+MOD         : M O D ;
+AND         : A N D ;
+OR          : O R ;
+NOT         : N O T ;
+IF          : I F;
+THEN        : T H E N ;
+ELSE        : E L S E;
+UNTIL       : U N T I L ;
+WHILE       : W H I L E;
+DO          : D O ;
+FOR         : F O R;
+TO          : T O ;
+DOWNTO      : D O W N T O ;
+COUT        : C O U T ;
+WRITELN     : W R I T E L N ;
+READ        : R E A D ;
+READLN      : R E A D L N ;
+PROCEDURE   : P R O C E D U R E ;
+FUNCTION    : F U N C T I O N ;
 
 IDENTIFIER : [a-zA-Z][a-zA-Z0-9]* ;
-INTEGER    : [0-9]+ ;
+INT        : [0-9]+ ;
 
-REAL       : INTEGER '.' INTEGER
-           | INTEGER ('e' | 'E') ('+' | '-')? INTEGER
-           | INTEGER '.' INTEGER ('e' | 'E') ('+' | '-')? INTEGER
+DOUBLE     : INT '.' INT
+           | INT ('e' | 'E') ('+' | '-')? INT
+           | INT '.' INT ('e' | 'E') ('+' | '-')? INT
            ;
 
 NEWLINE : '\r'? '\n' -> skip  ;

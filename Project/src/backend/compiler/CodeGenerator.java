@@ -391,11 +391,11 @@ public class CodeGenerator
         {
             Object value = variableId.getValue();
 
-            if (type == Predefined.integerType)
+            if (type == Predefined.intType)
             {
                 emitLoadConstant((Integer) value);
             }
-            else if (type == Predefined.realType)
+            else if (type == Predefined.doubleType)
             {
                 emitLoadConstant((Float) value);
             }
@@ -448,7 +448,7 @@ public class CodeGenerator
             form = type.getForm();
         }
 
-        if (   (type == Predefined.integerType)
+        if (   (type == Predefined.intType)
             || (type == Predefined.booleanType)
             || (type == Predefined.charType)
             || (form == ENUMERATION))
@@ -462,7 +462,7 @@ public class CodeGenerator
                 default: emit(ILOAD, index);
             }
         }
-        else if (type == Predefined.realType)
+        else if (type == Predefined.doubleType)
         {
             switch (index) {
                 case 0:  emit(FLOAD_0); break;
@@ -555,7 +555,7 @@ public class CodeGenerator
             form = type.getForm();
         }
 
-        if (   (type == Predefined.integerType)
+        if (   (type == Predefined.intType)
             || (type == Predefined.booleanType)
             || (type == Predefined.charType)
             || (form == ENUMERATION))
@@ -569,7 +569,7 @@ public class CodeGenerator
                 default: emit(ISTORE, slot);
             }
         }
-        else if (type == Predefined.realType)
+        else if (type == Predefined.doubleType)
         {
             switch (slot) {
                 case 0:  emit(FSTORE_0); break;
@@ -606,8 +606,8 @@ public class CodeGenerator
             form = elmtType.getForm();
         }
 
-        emit(  elmtType == Predefined.integerType ? IASTORE
-             : elmtType == Predefined.realType    ? FASTORE
+        emit(  elmtType == Predefined.intType ? IASTORE
+             : elmtType == Predefined.doubleType    ? FASTORE
              : elmtType == Predefined.booleanType ? BASTORE
              : elmtType == Predefined.charType    ? CASTORE
              : form == ENUMERATION                ? IASTORE
@@ -681,11 +681,11 @@ public class CodeGenerator
             form = type.getForm();
         }
 
-        if (   (type == Predefined.integerType)
+        if (   (type == Predefined.intType)
             || (type == Predefined.booleanType)
             || (type == Predefined.charType)
             || (form == ENUMERATION))         emit(IRETURN);
-        else if (type == Predefined.realType) emit(FRETURN);
+        else if (type == Predefined.doubleType) emit(FRETURN);
         else                                  emit(ARETURN);
     }
 
@@ -744,8 +744,8 @@ public class CodeGenerator
         cppType = cppType.baseType();
         String str;
 
-        if      (cppType == Predefined.integerType) str = "I";
-        else if (cppType == Predefined.realType)    str = "F";
+        if      (cppType == Predefined.intType) str = "I";
+        else if (cppType == Predefined.doubleType)    str = "F";
         else if (cppType == Predefined.booleanType) str = "Z";
         else if (cppType == Predefined.charType)    str = "C";
         else if (cppType == Predefined.stringType)  str = "Ljava/lang/String;";
@@ -780,8 +780,8 @@ public class CodeGenerator
         cppType = cppType.baseType();
         String str;
 
-        if      (cppType == Predefined.integerType) str = "java/lang/Integer";
-        else if (cppType == Predefined.realType)    str = "java/lang/Float";
+        if      (cppType == Predefined.intType) str = "java/lang/Integer";
+        else if (cppType == Predefined.doubleType)    str = "java/lang/Float";
         else if (cppType == Predefined.booleanType) str = "java/lang/Boolean";
         else if (cppType == Predefined.charType)    str = "java/lang/Character";
         else if (cppType == Predefined.stringType)  str = "Ljava/lang/String;";
@@ -834,8 +834,8 @@ public class CodeGenerator
     {
         String javaType = objectTypeName(type);
         String typeCode = typeDescriptor(type);
-        String typeName = type == Predefined.integerType ? "int"
-                        : type == Predefined.realType    ? "double"
+        String typeName = type == Predefined.intType ? "int"
+                        : type == Predefined.doubleType    ? "double"
                         : type == Predefined.booleanType ? "boolean"
                         : type == Predefined.charType    ? "char"
                         :                                  "int";

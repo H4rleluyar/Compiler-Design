@@ -81,8 +81,8 @@ public class StructuredDataGenerator extends CodeGenerator
         elmtType = elmtType.baseType();
         Form elmtForm = elmtType.getForm();
         String typeName =
-              elmtType == Predefined.integerType ? "int"
-            : elmtType == Predefined.realType    ? "float"
+              elmtType == Predefined.intType ? "int"
+            : elmtType == Predefined.doubleType    ? "float"
             : elmtType == Predefined.booleanType ? "boolean"
             : elmtType == Predefined.charType    ? "char"
             : elmtType == Predefined.stringType  ? "java/lang/String"
@@ -150,12 +150,12 @@ public class StructuredDataGenerator extends CodeGenerator
 
         // Initialize temporary variable to 0.
         emitLoadConstant(0);
-        emitStoreLocal(Predefined.integerType, tempIndex);
+        emitStoreLocal(Predefined.intType, tempIndex);
 
         // Top of the loop:
         // Compare the temporary variable to the element count.
         emitLabel(loopStartLabel);
-        emitLoadLocal(Predefined.integerType, tempIndex);
+        emitLoadLocal(Predefined.intType, tempIndex);
         emitLoadConstant(count);
         emit(IF_ICMPGE, loopExitLabel);
         emitLine();
@@ -166,7 +166,7 @@ public class StructuredDataGenerator extends CodeGenerator
         // Allocate data for the next array dimension.
         if (form == ARRAY)
         {
-            emitLoadLocal(Predefined.integerType, tempIndex);   // subscript
+            emitLoadLocal(Predefined.intType, tempIndex);   // subscript
             emit(AALOAD);
             emitAllocateArrayElements(targetId, elmtType.getArrayElementType(),
                                       dimensionIndex + 1, dimensionCount);
@@ -175,7 +175,7 @@ public class StructuredDataGenerator extends CodeGenerator
         // Allocate data for a record element.
         else if (form == RECORD)
         {
-            emitLoadLocal(Predefined.integerType, tempIndex);  // subscript
+            emitLoadLocal(Predefined.intType, tempIndex);  // subscript
             emitAllocateRecord(null, elmtType.getArrayElementType(), DUP_X2);
         }
 

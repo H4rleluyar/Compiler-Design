@@ -1,16 +1,16 @@
-program DemoTestIf;
+#include <asdf>
 
-integer i;
-integer j;
-integer a;
-integer b;
-integer c;
-integer k;
-integer x;
-integer y;
+int i;
+int j;
+int a;
+int b;
+int c;
+double k;
+int x;
+int y;
 string line;
 
-int main() {
+main() {
     line = "Hello World";
     i = 1;
     j = 2;

@@ -50,8 +50,8 @@ public class Semantics extends cppBaseVisitor<Object>
     {
         type = type.baseType();
 
-        if      (type == Predefined.integerType) return Integer.valueOf(0);
-        else if (type == Predefined.realType)    return Float.valueOf(0.0f);
+        if      (type == Predefined.intType) return Integer.valueOf(0);
+        else if (type == Predefined.doubleType)    return Float.valueOf(0.0f);
         else if (type == Predefined.booleanType) return Boolean.valueOf(false);
         else if (type == Predefined.charType)    return Character.valueOf('#');
         else /* string */                        return String.valueOf("#");
@@ -112,7 +112,7 @@ public class Semantics extends cppBaseVisitor<Object>
             error.flag(REDECLARED_IDENTIFIER, ctx);
 
             idCtx.entry = constantId;
-            idCtx.type  = Predefined.integerType;
+            idCtx.type  = Predefined.intType;
         }
 
         constantId.appendLineNumber(ctx.getStart().getLine());
@@ -144,7 +144,7 @@ public class Semantics extends cppBaseVisitor<Object>
             {
                 error.flag(UNDECLARED_IDENTIFIER, ctx);
 
-                ctx.type = Predefined.integerType;
+                ctx.type = Predefined.intType;
                 ctx.value = 0;
             }
         }
@@ -162,14 +162,14 @@ public class Semantics extends cppBaseVisitor<Object>
         }
         else  // number
         {
-            if (ctx.unsignedNumber().integerConstant() != null)
+            if (ctx.unsignedNumber().intConstant() != null)
             {
-                ctx.type  = Predefined.integerType;
+                ctx.type  = Predefined.intType;
                 ctx.value = Integer.parseInt(ctx.getText());
             }
             else
             {
-                ctx.type  = Predefined.realType;
+                ctx.type  = Predefined.doubleType;
                 ctx.value = Float.parseFloat(ctx.getText());
             }
         }
@@ -330,7 +330,7 @@ public class Semantics extends cppBaseVisitor<Object>
             if (typeId.getKind() != TYPE)
             {
                 error.flag(INVALID_TYPE, ctx);
-                ctx.type = Predefined.integerType;
+                ctx.type = Predefined.intType;
             }
             else
             {
@@ -342,7 +342,7 @@ public class Semantics extends cppBaseVisitor<Object>
         else
         {
             error.flag(UNDECLARED_IDENTIFIER, ctx);
-            ctx.type = Predefined.integerType;
+            ctx.type = Predefined.intType;
         }
 
         ctx.entry = typeId;
@@ -410,18 +410,18 @@ public class Semantics extends cppBaseVisitor<Object>
 
         if (   (   (minType.getForm() != SCALAR)
                 && (minType.getForm() != ENUMERATION))
-            || (minType == Predefined.realType)
+            || (minType == Predefined.doubleType)
             || (minType == Predefined.stringType))
         {
             error.flag(INVALID_CONSTANT, minCtx);
-            minType = Predefined.integerType;
+            minType = Predefined.intType;
             minObj = 0;
         }
 
         int minValue;
         int maxValue;
 
-        if (minType == Predefined.integerType)
+        if (minType == Predefined.intType)
         {
             minValue = (Integer) minObj;
             maxValue = (Integer) maxObj;
@@ -625,7 +625,7 @@ public class Semantics extends cppBaseVisitor<Object>
             if (returnType.getForm() != SCALAR)
             {
                 error.flag(INVALID_RETURN_TYPE, typeIdCtx);
-                returnType = Predefined.integerType;
+                returnType = Predefined.intType;
             }
 
             routineId.setType(returnType);
@@ -796,14 +796,14 @@ public class Semantics extends cppBaseVisitor<Object>
         visit(varCtx);
 
         String controlName = varCtx.variableIdentifier().getText().toLowerCase();
-        Typespec controlType = Predefined.integerType;
+        Typespec controlType = Predefined.intType;
 
         if (varCtx.entry != null)
         {
             controlType = varCtx.type;
 
             if (   (controlType.getForm() != SCALAR )
-                || (controlType == Predefined.realType)
+                || (controlType == Predefined.doubleType)
                 || (controlType == Predefined.stringType)
                 || (varCtx.modifier().size() != 0))
             {
@@ -881,7 +881,7 @@ public class Semantics extends cppBaseVisitor<Object>
         SymtabEntry functionId = symtabStack.lookup(name);
         boolean badName = false;
 
-        ctx.type = Predefined.integerType;
+        ctx.type = Predefined.intType;
 
         if (functionId == null)
         {
@@ -1085,14 +1085,14 @@ public class Semantics extends cppBaseVisitor<Object>
                 // Both operands integer ==> integer result
                 if (TypeChecker.areBothInteger(termType1, termType2))
                 {
-                    termType2 = Predefined.integerType;
+                    termType2 = Predefined.intType;
                 }
 
                 // Both real operands ==> real result
                 // One real and one integer operand ==> real result
                 else if (TypeChecker.isAtLeastOneReal(termType1, termType2))
                 {
-                    termType2 = Predefined.realType;
+                    termType2 = Predefined.doubleType;
                 }
 
                 // Both operands string ==> string result
@@ -1108,12 +1108,12 @@ public class Semantics extends cppBaseVisitor<Object>
                     if (!TypeChecker.isIntegerOrReal(termType1))
                     {
                         error.flag(TYPE_MUST_BE_NUMERIC, termCtx1);
-                        termType2 = Predefined.integerType;
+                        termType2 = Predefined.intType;
                     }
                     if (!TypeChecker.isIntegerOrReal(termType2))
                     {
                         error.flag(TYPE_MUST_BE_NUMERIC, termCtx2);
-                        termType2 = Predefined.integerType;
+                        termType2 = Predefined.intType;
                     }
                 }
             }
@@ -1122,14 +1122,14 @@ public class Semantics extends cppBaseVisitor<Object>
                 // Both operands integer ==> integer result
                 if (TypeChecker.areBothInteger(termType1, termType2))
                 {
-                    termType2 = Predefined.integerType;
+                    termType2 = Predefined.intType;
                 }
 
                 // Both real operands ==> real result
                 // One real and one integer operand ==> real result
                 else if (TypeChecker.isAtLeastOneReal(termType1, termType2))
                 {
-                    termType2 = Predefined.realType;
+                    termType2 = Predefined.doubleType;
                 }
 
                 // Type mismatch.
@@ -1138,12 +1138,12 @@ public class Semantics extends cppBaseVisitor<Object>
                     if (!TypeChecker.isIntegerOrReal(termType1))
                     {
                         error.flag(TYPE_MUST_BE_NUMERIC, termCtx1);
-                        termType2 = Predefined.integerType;
+                        termType2 = Predefined.intType;
                     }
                     if (!TypeChecker.isIntegerOrReal(termType2))
                     {
                         error.flag(TYPE_MUST_BE_NUMERIC, termCtx2);
-                        termType2 = Predefined.integerType;
+                        termType2 = Predefined.intType;
                     }
                 }
             }
@@ -1178,14 +1178,14 @@ public class Semantics extends cppBaseVisitor<Object>
                 // Both operands integer  ==> integer result
                 if (TypeChecker.areBothInteger(factorType1, factorType2))
                 {
-                    factorType2 = Predefined.integerType;
+                    factorType2 = Predefined.intType;
                 }
 
                 // Both real operands ==> real result
                 // One real and one integer operand ==> real result
                 else if (TypeChecker.isAtLeastOneReal(factorType1, factorType2))
                 {
-                    factorType2 = Predefined.realType;
+                    factorType2 = Predefined.doubleType;
                 }
 
                 // Type mismatch.
@@ -1194,12 +1194,12 @@ public class Semantics extends cppBaseVisitor<Object>
                     if (!TypeChecker.isIntegerOrReal(factorType1))
                     {
                         error.flag(TYPE_MUST_BE_NUMERIC, factorCtx1);
-                        factorType2 = Predefined.integerType;
+                        factorType2 = Predefined.intType;
                     }
                     if (!TypeChecker.isIntegerOrReal(factorType2))
                     {
                         error.flag(TYPE_MUST_BE_NUMERIC, factorCtx2);
-                        factorType2 = Predefined.integerType;
+                        factorType2 = Predefined.intType;
                     }
                 }
             }
@@ -1209,7 +1209,7 @@ public class Semantics extends cppBaseVisitor<Object>
                 if (   TypeChecker.areBothInteger(factorType1, factorType2)
                     || TypeChecker.isAtLeastOneReal(factorType1, factorType2))
                 {
-                    factorType2 = Predefined.realType;
+                    factorType2 = Predefined.doubleType;
                 }
 
                 // Type mismatch.
@@ -1218,12 +1218,12 @@ public class Semantics extends cppBaseVisitor<Object>
                     if (!TypeChecker.isIntegerOrReal(factorType1))
                     {
                         error.flag(TYPE_MUST_BE_NUMERIC, factorCtx1);
-                        factorType2 = Predefined.integerType;
+                        factorType2 = Predefined.intType;
                     }
                     if (!TypeChecker.isIntegerOrReal(factorType2))
                     {
                         error.flag(TYPE_MUST_BE_NUMERIC, factorCtx2);
-                        factorType2 = Predefined.integerType;
+                        factorType2 = Predefined.intType;
                     }
                 }
             }
@@ -1233,12 +1233,12 @@ public class Semantics extends cppBaseVisitor<Object>
                 if (!TypeChecker.isInteger(factorType1))
                 {
                     error.flag(TYPE_MUST_BE_INTEGER, factorCtx1);
-                    factorType2 = Predefined.integerType;
+                    factorType2 = Predefined.intType;
                 }
                 if (!TypeChecker.isInteger(factorType2))
                 {
                     error.flag(TYPE_MUST_BE_INTEGER, factorCtx2);
-                    factorType2 = Predefined.integerType;
+                    factorType2 = Predefined.intType;
                 }
             }
             else if (op.equals("and"))
@@ -1317,7 +1317,7 @@ public class Semantics extends cppBaseVisitor<Object>
         else
         {
             error.flag(UNDECLARED_IDENTIFIER, ctx);
-            ctx.type = Predefined.integerType;
+            ctx.type = Predefined.intType;
         }
 
         return null;
@@ -1406,10 +1406,10 @@ public class Semantics extends cppBaseVisitor<Object>
     {
         cppParser.NumberContext          numberCtx   = ctx.number();
         cppParser.UnsignedNumberContext  unsignedCtx = numberCtx.unsignedNumber();
-        cppParser.IntegerConstantContext integerCtx  = unsignedCtx.integerConstant();
+        cppParser.IntConstantContext     intCtx  = unsignedCtx.intConstant();
 
-        ctx.type = (integerCtx != null) ? Predefined.integerType
-                                        : Predefined.realType;
+        ctx.type = (intCtx != null) ? Predefined.intType
+                                        : Predefined.doubleType;
 
         return null;
     }

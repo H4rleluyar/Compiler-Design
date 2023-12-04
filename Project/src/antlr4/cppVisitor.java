@@ -1,4 +1,4 @@
-// Generated from G:/CodeProjects/cs153working/project/cpp.g4 by ANTLR 4.13.1
+// Generated from C:/Users/10333642/Desktop/CS153/Project/Project/cpp.g4 by ANTLR 4.13.1
 
     package antlr4;
     import java.util.HashMap;
@@ -563,17 +563,17 @@ public interface cppVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitUnsignedNumber(cppParser.UnsignedNumberContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link cppParser#integerConstant}.
+	 * Visit a parse tree produced by {@link cppParser#intConstant}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitIntegerConstant(cppParser.IntegerConstantContext ctx);
+	T visitIntConstant(cppParser.IntConstantContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link cppParser#realConstant}.
+	 * Visit a parse tree produced by {@link cppParser#doubleConstant}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitRealConstant(cppParser.RealConstantContext ctx);
+	T visitDoubleConstant(cppParser.DoubleConstantContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link cppParser#characterConstant}.
 	 * @param ctx the parse tree

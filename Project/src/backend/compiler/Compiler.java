@@ -163,7 +163,7 @@ public class Compiler extends cppBaseVisitor<Object>
     @Override
     public Object visitNumberFactor(cppParser.NumberFactorContext ctx)
     {
-        if (ctx.type == Predefined.integerType)
+        if (ctx.type == Predefined.intType)
         {
             expressionCode.emitLoadIntegerConstant(ctx.number());
         }

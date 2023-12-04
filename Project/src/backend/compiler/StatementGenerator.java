@@ -63,8 +63,8 @@ public class StatementGenerator extends CodeGenerator {
         compiler.visit(exprCtx);
 
         // float variable := integer constant
-        if ((varType == Predefined.realType)
-                && (exprType.baseType() == Predefined.integerType))
+        if ((varType == Predefined.doubleType)
+                && (exprType.baseType() == Predefined.intType))
             emit(I2F);
 
         // Emit code to store the expression value into the target variable.
@@ -402,17 +402,17 @@ public class StatementGenerator extends CodeGenerator {
                             ? "-"
                             : "";
                     format.append(sign)
-                            .append(fwCtx.integerConstant().getText());
+                            .append(fwCtx.intConstant().getText());
 
                     cppParser.DecimalPlacesContext dpCtx = fwCtx.decimalPlaces();
                     if (dpCtx != null) {
                         format.append(".")
-                                .append(dpCtx.integerConstant().getText());
+                                .append(dpCtx.intConstant().getText());
                     }
                 }
 
-                String typeFlag = type == Predefined.integerType ? "d"
-                        : type == Predefined.realType ? "f"
+                String typeFlag = type == Predefined.intType ? "d"
+                        : type == Predefined.doubleType ? "f"
                         : type == Predefined.booleanType ? "b"
                         : type == Predefined.charType ? "c"
                         : "s";
@@ -498,11 +498,11 @@ public class StatementGenerator extends CodeGenerator {
             cppParser.VariableContext varCtx = argsCtx.variable().get(i);
             Typespec varType = varCtx.type;
 
-            if (varType == Predefined.integerType) {
+            if (varType == Predefined.intType) {
                 emit(GETSTATIC, programName + "/_sysin Ljava/util/Scanner;");
                 emit(INVOKEVIRTUAL, "java/util/Scanner/nextInt()I");
                 emitStoreValue(varCtx.entry, null);
-            } else if (varType == Predefined.realType) {
+            } else if (varType == Predefined.doubleType) {
                 emit(GETSTATIC, programName + "/_sysin Ljava/util/Scanner;");
                 emit(INVOKEVIRTUAL, "java/util/Scanner/nextFloat()F");
                 emitStoreValue(varCtx.entry, null);

@@ -1,4 +1,4 @@
-// Generated from G:/CodeProjects/cs153working/project/cpp.g4 by ANTLR 4.13.1
+// Generated from C:/Users/10333642/Desktop/CS153/Project/Project/cpp.g4 by ANTLR 4.13.1
 
     package antlr4;
     import java.util.HashMap;
@@ -1090,25 +1090,25 @@ public class cppBaseListener implements cppListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterIntegerConstant(cppParser.IntegerConstantContext ctx) { }
+	@Override public void enterIntConstant(cppParser.IntConstantContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitIntegerConstant(cppParser.IntegerConstantContext ctx) { }
+	@Override public void exitIntConstant(cppParser.IntConstantContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterRealConstant(cppParser.RealConstantContext ctx) { }
+	@Override public void enterDoubleConstant(cppParser.DoubleConstantContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitRealConstant(cppParser.RealConstantContext ctx) { }
+	@Override public void exitDoubleConstant(cppParser.DoubleConstantContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

@@ -1,4 +1,4 @@
-// Generated from G:/CodeProjects/cs153working/project/cpp.g4 by ANTLR 4.13.1
+// Generated from C:/Users/10333642/Desktop/CS153/Project/Project/cpp.g4 by ANTLR 4.13.1
 
     package antlr4;
     import java.util.HashMap;
@@ -929,25 +929,25 @@ public interface cppListener extends ParseTreeListener {
 	 */
 	void exitUnsignedNumber(cppParser.UnsignedNumberContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link cppParser#integerConstant}.
+	 * Enter a parse tree produced by {@link cppParser#intConstant}.
 	 * @param ctx the parse tree
 	 */
-	void enterIntegerConstant(cppParser.IntegerConstantContext ctx);
+	void enterIntConstant(cppParser.IntConstantContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link cppParser#integerConstant}.
+	 * Exit a parse tree produced by {@link cppParser#intConstant}.
 	 * @param ctx the parse tree
 	 */
-	void exitIntegerConstant(cppParser.IntegerConstantContext ctx);
+	void exitIntConstant(cppParser.IntConstantContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link cppParser#realConstant}.
+	 * Enter a parse tree produced by {@link cppParser#doubleConstant}.
 	 * @param ctx the parse tree
 	 */
-	void enterRealConstant(cppParser.RealConstantContext ctx);
+	void enterDoubleConstant(cppParser.DoubleConstantContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link cppParser#realConstant}.
+	 * Exit a parse tree produced by {@link cppParser#doubleConstant}.
 	 * @param ctx the parse tree
 	 */
-	void exitRealConstant(cppParser.RealConstantContext ctx);
+	void exitDoubleConstant(cppParser.DoubleConstantContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link cppParser#characterConstant}.
 	 * @param ctx the parse tree

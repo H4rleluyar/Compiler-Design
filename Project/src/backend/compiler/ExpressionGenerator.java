@@ -52,13 +52,13 @@ public class ExpressionGenerator extends CodeGenerator
             boolean realMode      = false;
             boolean characterMode = false;
 
-            if (   (type1 == Predefined.integerType)
-                && (type2 == Predefined.integerType))
+            if (   (type1 == Predefined.intType)
+                && (type2 == Predefined.intType))
             {
                 integerMode = true;
             }
-            else if (   (type1 == Predefined.realType)
-                     || (type2 == Predefined.realType))
+            else if (   (type1 == Predefined.doubleType)
+                     || (type2 == Predefined.doubleType))
             {
                 realMode = true;
             }
@@ -84,9 +84,9 @@ public class ExpressionGenerator extends CodeGenerator
             }
             else if (realMode)
             {
-                if (type1 == Predefined.integerType) emit(I2F);
+                if (type1 == Predefined.intType) emit(I2F);
                 emitSimpleExpression(simpleCtx2);
-                if (type2 == Predefined.integerType) emit(I2F);
+                if (type2 == Predefined.intType) emit(I2F);
 
                 emit(FCMPG);
 
@@ -137,7 +137,7 @@ public class ExpressionGenerator extends CodeGenerator
         Typespec type1 = termCtx1.type;
         emitTerm(termCtx1);
 
-        if (negate) emit(type1 == Predefined.integerType ? INEG : FNEG);
+        if (negate) emit(type1 == Predefined.intType ? INEG : FNEG);
 
         // Loop over the subsequent terms.
         for (int i = 1; i < count; i++)
@@ -150,13 +150,13 @@ public class ExpressionGenerator extends CodeGenerator
             boolean realMode    = false;
             boolean booleanMode = false;
 
-            if (   (type1 == Predefined.integerType)
-                && (type2 == Predefined.integerType))
+            if (   (type1 == Predefined.intType)
+                && (type2 == Predefined.intType))
             {
                 integerMode = true;
             }
-            else if (   (type1 == Predefined.realType)
-                     || (type2 == Predefined.realType))
+            else if (   (type1 == Predefined.doubleType)
+                     || (type2 == Predefined.doubleType))
             {
                 realMode = true;
             }
@@ -175,9 +175,9 @@ public class ExpressionGenerator extends CodeGenerator
             }
             else if (realMode)
             {
-                if (type1 == Predefined.integerType) emit(I2F);
+                if (type1 == Predefined.intType) emit(I2F);
                 emitTerm(termCtx2);
-                if (type2 == Predefined.integerType) emit(I2F);
+                if (type2 == Predefined.intType) emit(I2F);
 
                 if (op.equals("+")) emit(FADD);
                 else                emit(FSUB);
@@ -232,13 +232,13 @@ public class ExpressionGenerator extends CodeGenerator
             boolean integerMode = false;
             boolean realMode    = false;
 
-            if (   (type1 == Predefined.integerType)
-                && (type2 == Predefined.integerType))
+            if (   (type1 == Predefined.intType)
+                && (type2 == Predefined.intType))
             {
                 integerMode = true;
             }
-            else if (   (type1 == Predefined.realType)
-                     || (type2 == Predefined.realType))
+            else if (   (type1 == Predefined.doubleType)
+                     || (type2 == Predefined.doubleType))
             {
                 realMode = true;
             }
@@ -254,9 +254,9 @@ public class ExpressionGenerator extends CodeGenerator
             }
             else if (realMode)
             {
-                if (type1 == Predefined.integerType) emit(I2F);
+                if (type1 == Predefined.intType) emit(I2F);
                 compiler.visit(factorCtx2);
-                if (type2 == Predefined.integerType) emit(I2F);
+                if (type2 == Predefined.intType) emit(I2F);
 
                 if      (op.equals("*")) emit(FMUL);
                 else if (op.equals("/")) emit(FDIV);
@@ -409,8 +409,8 @@ public class ExpressionGenerator extends CodeGenerator
         // Load an array element.
         else
         {
-            emit(  elmtType == Predefined.integerType ? IALOAD
-                 : elmtType == Predefined.realType    ? FALOAD
+            emit(  elmtType == Predefined.intType ? IALOAD
+                 : elmtType == Predefined.doubleType    ? FALOAD
                  : elmtType == Predefined.booleanType ? BALOAD
                  : elmtType == Predefined.charType    ? CALOAD
                  : form == ENUMERATION                ? IALOAD

@@ -22,16 +22,16 @@ import static intermediate.type.Typespec.Form.*;
 public class Predefined
 {
     // Predefined types.
-    public static Typespec integerType;
-    public static Typespec realType;
+    public static Typespec intType;
+    public static Typespec doubleType;
     public static Typespec booleanType;
     public static Typespec charType;
     public static Typespec stringType;
     public static Typespec undefinedType;
 
     // Predefined identifiers.
-    public static SymtabEntry integerId;
-    public static SymtabEntry realId;
+    public static SymtabEntry intId;
+    public static SymtabEntry doubleId;
     public static SymtabEntry booleanId;
     public static SymtabEntry charId;
     public static SymtabEntry stringId;
@@ -77,16 +77,16 @@ public class Predefined
     private static void initializeTypes(SymtabStack symTabStack)
     {
         // Type integer.
-        integerId = symTabStack.enterLocal("integer", TYPE);
-        integerType = new Typespec(SCALAR);
-        integerType.setIdentifier(integerId);
-        integerId.setType(integerType);
+        intId = symTabStack.enterLocal("int", TYPE);
+        intType = new Typespec(SCALAR);
+        intType.setIdentifier(intId);
+        intId.setType(intType);
 
         // Type real.
-        realId = symTabStack.enterLocal("real", TYPE);
-        realType = new Typespec(SCALAR);
-        realType.setIdentifier(realId);
-        realId.setType(realType);
+        doubleId = symTabStack.enterLocal("double", TYPE);
+        doubleType = new Typespec(SCALAR);
+        doubleType.setIdentifier(doubleId);
+        doubleId.setType(doubleType);
 
         // Type boolean.
         booleanId = symTabStack.enterLocal("boolean", TYPE);

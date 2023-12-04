@@ -102,16 +102,16 @@ public class Executor extends cppBaseVisitor<Object>
                              Object value, Typespec valueType)
     {
         // Assign with any necessary type conversions.
-        if (   (targetType == Predefined.integerType)
+        if (   (targetType == Predefined.intType)
             && (valueType  == Predefined.charType))
         {
             int charValue = (Character) value;
             targetCell.setValue(charValue);
         }
-        else if (targetType == Predefined.realType)
+        else if (targetType == Predefined.doubleType)
         {
             double doubleValue =
-                    (valueType == Predefined.integerType) ? (Integer)   value
+                    (valueType == Predefined.intType) ? (Integer)   value
                   : (valueType == Predefined.charType)    ? (Character) value
                   :                                         (Double)    value;
             targetCell.setValue(doubleValue);
@@ -165,7 +165,7 @@ public class Executor extends cppBaseVisitor<Object>
         Object stopValue = visit(stopExprCtx);
 
         // Integer control values.
-        if (controlCtx.type.baseType() == Predefined.integerType)
+        if (controlCtx.type.baseType() == Predefined.intType)
         {
             int control = (Integer) startValue;
             int stop    = (Integer) stopValue;
@@ -176,7 +176,7 @@ public class Executor extends cppBaseVisitor<Object>
                 {
                     visit(ctx.statement());
                     Object nextValue = ++control;
-                    assignValue(controlCtx, nextValue, Predefined.integerType);
+                    assignValue(controlCtx, nextValue, Predefined.intType);
                 }
             }
             else  // downto
@@ -185,7 +185,7 @@ public class Executor extends cppBaseVisitor<Object>
                 {
                     visit(ctx.statement());
                     Object nextValue = --control;
-                    assignValue(controlCtx, nextValue, Predefined.integerType);
+                    assignValue(controlCtx, nextValue, Predefined.intType);
                 }
             }
         }
@@ -314,13 +314,13 @@ public class Executor extends cppBaseVisitor<Object>
             boolean realMode      = false;
             boolean characterMode = false;
 
-            if (   (type1 == Predefined.integerType)
-                && (type2 == Predefined.integerType))
+            if (   (type1 == Predefined.intType)
+                && (type2 == Predefined.intType))
             {
                 integerMode = true;
             }
-            else if (   (type1 == Predefined.realType)
-                     || (type2 == Predefined.realType))
+            else if (   (type1 == Predefined.doubleType)
+                     || (type2 == Predefined.doubleType))
             {
                 realMode = true;
             }
@@ -332,9 +332,9 @@ public class Executor extends cppBaseVisitor<Object>
 
             if (integerMode || characterMode)
             {
-                int value1 = type1 == Predefined.integerType
+                int value1 = type1 == Predefined.intType
                         ? (Integer) operand1 : (Character) operand1;
-                int value2 = type2 == Predefined.integerType
+                int value2 = type2 == Predefined.intType
                         ? (Integer) operand2 : (Character) operand2;
                 Boolean result = false;
 
@@ -349,9 +349,9 @@ public class Executor extends cppBaseVisitor<Object>
             }
             else if (realMode)
             {
-                double value1 = type1 == Predefined.integerType
+                double value1 = type1 == Predefined.intType
                         ? (Integer) operand1 : (Double) operand1;
-                double value2 = type2 == Predefined.integerType
+                double value2 = type2 == Predefined.intType
                         ? (Integer) operand2 : (Double) operand2;
                 Boolean result = false;
 
@@ -399,11 +399,11 @@ public class Executor extends cppBaseVisitor<Object>
 
         if (negate)
         {
-            if (type1 == Predefined.integerType)
+            if (type1 == Predefined.intType)
             {
                 operand1 = -((Integer) operand1);
             }
-            else if (type1 == Predefined.realType)
+            else if (type1 == Predefined.doubleType)
             {
                 operand1 = -((Double) operand1);
             }
@@ -421,13 +421,13 @@ public class Executor extends cppBaseVisitor<Object>
             boolean realMode    = false;
             boolean booleanMode = false;
 
-            if (   (type1 == Predefined.integerType)
-                && (type2 == Predefined.integerType))
+            if (   (type1 == Predefined.intType)
+                && (type2 == Predefined.intType))
             {
                 integerMode = true;
             }
-            else if (   (type1 == Predefined.realType)
-                     || (type2 == Predefined.realType))
+            else if (   (type1 == Predefined.doubleType)
+                     || (type2 == Predefined.doubleType))
             {
                 realMode = true;
             }
@@ -446,9 +446,9 @@ public class Executor extends cppBaseVisitor<Object>
             }
             else if (realMode)
             {
-                double value1 = type1 == Predefined.integerType
+                double value1 = type1 == Predefined.intType
                               ? (Integer) operand1 : (Double) operand1;
-                double value2 = type2 == Predefined.integerType
+                double value2 = type2 == Predefined.intType
                               ? (Integer) operand2 : (Double) operand2;
                 operand1 = (op.equals("+")) ? value1 + value2
                                             : value1 - value2;
@@ -487,13 +487,13 @@ public class Executor extends cppBaseVisitor<Object>
             boolean integerMode = false;
             boolean realMode    = false;
 
-            if (   (type1 == Predefined.integerType)
-                && (type2 == Predefined.integerType))
+            if (   (type1 == Predefined.intType)
+                && (type2 == Predefined.intType))
             {
                 integerMode = true;
             }
-            else if (   (type1 == Predefined.realType)
-                     || (type2 == Predefined.realType))
+            else if (   (type1 == Predefined.doubleType)
+                     || (type2 == Predefined.doubleType))
             {
                 realMode = true;
             }
@@ -531,9 +531,9 @@ public class Executor extends cppBaseVisitor<Object>
             }
             else if (realMode)
             {
-                double value1 = type1 == Predefined.integerType
+                double value1 = type1 == Predefined.intType
                         ? (Integer) operand1 : (Double) operand1;
-                double value2 = type2 == Predefined.integerType
+                double value2 = type2 == Predefined.intType
                         ? (Integer) operand2 : (Double) operand2;
 
                 if (op.equals("*")) operand1 = value1*value2;
@@ -646,7 +646,7 @@ public class Executor extends cppBaseVisitor<Object>
     {
         Typespec type = ctx.type;
 
-        if (type == Predefined.integerType)
+        if (type == Predefined.intType)
         {
             return Integer.parseInt(ctx.getText());
         }
@@ -769,24 +769,24 @@ public class Executor extends cppBaseVisitor<Object>
                                    && (fwCtx.sign().getText().equals("-")))
                                 ? "-" : "";
                     format.append(sign)
-                          .append(fwCtx.integerConstant().getText());
+                          .append(fwCtx.intConstant().getText());
 
                     cppParser.DecimalPlacesContext dpCtx =
                                                         fwCtx.decimalPlaces();
                     if (dpCtx != null)
                     {
                         format.append(".")
-                              .append(dpCtx.integerConstant().getText());
+                              .append(dpCtx.intConstant().getText());
                     }
                 }
 
                 // Use the format string with printf.
-                if (type == Predefined.integerType)
+                if (type == Predefined.intType)
                 {
                     format.append("d");
                     System.out.printf(format.toString(), (int) value);
                 }
-                else if (type == Predefined.realType)
+                else if (type == Predefined.doubleType)
                 {
                     format.append("f");
                     System.out.printf(format.toString(), (double) value);
@@ -832,15 +832,15 @@ public class Executor extends cppBaseVisitor<Object>
             cppParser.VariableContext varCtx = ctx.variable().get(i);
             Typespec varType = varCtx.type;
 
-            if (varType == Predefined.integerType)
+            if (varType == Predefined.intType)
             {
                 int value = sysin.nextInt();
-                assignValue(varCtx, value, Predefined.integerType);
+                assignValue(varCtx, value, Predefined.intType);
             }
-            else if (varType == Predefined.realType)
+            else if (varType == Predefined.doubleType)
             {
                 double value = sysin.nextDouble();
-                assignValue(varCtx, value, Predefined.realType);
+                assignValue(varCtx, value, Predefined.doubleType);
             }
             else if (varType == Predefined.booleanType)
             {

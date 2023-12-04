@@ -44,7 +44,7 @@ public class CrossReferencer
         System.out.println("\n===== CROSS-REFERENCE TABLE =====");
 
         SymtabEntry programId = symtabStack.getProgramId();
-        printRoutine(programId);
+        //printRoutine(programId);
     }
 
     /**
