@@ -57,7 +57,7 @@ public class cppLexer extends Lexer {
 	private static String[] makeLiteralNames() {
 		return new String[] {
 			null, "';'", "'('", "','", "')'", "'='", "'-'", "'+'", "'..'", "'['", 
-			"']'", "':'", "'{'", "'}'", "':='", "'<<'", "'.'", "'=='", "'<>'", "'<'", 
+			"']'", "':'", "'{'", "'}'", "':='", "'<<'", "'.'", "'=='", "'!='", "'<'", 
 			"'<='", "'>'", "'>='", "'*'", "'/'", null, null, null, null, null, null, 
 			null, null, null, null, null, null, null, null, null, null, null, null, 
 			null, null, null, null, null, null, null, null, null, null, null, null, 
@@ -300,7 +300,7 @@ public class cppLexer extends Lexer {
 		"<\u0000\u0000\u00d5\u001e\u0001\u0000\u0000\u0000\u00d6\u00d7\u0005.\u0000"+
 		"\u0000\u00d7 \u0001\u0000\u0000\u0000\u00d8\u00d9\u0005=\u0000\u0000\u00d9"+
 		"\u00da\u0005=\u0000\u0000\u00da\"\u0001\u0000\u0000\u0000\u00db\u00dc"+
-		"\u0005<\u0000\u0000\u00dc\u00dd\u0005>\u0000\u0000\u00dd$\u0001\u0000"+
+		"\u0005!\u0000\u0000\u00dc\u00dd\u0005=\u0000\u0000\u00dd$\u0001\u0000"+
 		"\u0000\u0000\u00de\u00df\u0005<\u0000\u0000\u00df&\u0001\u0000\u0000\u0000"+
 		"\u00e0\u00e1\u0005<\u0000\u0000\u00e1\u00e2\u0005=\u0000\u0000\u00e2("+
 		"\u0001\u0000\u0000\u0000\u00e3\u00e4\u0005>\u0000\u0000\u00e4*\u0001\u0000"+

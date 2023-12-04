@@ -1,41 +1,23 @@
-#include <iostream>
-#include <chrono>
+program DemoTestWhile;
 
-int i;
-int j;
-
-void doWhileExample() {
-    i = 1;
-    while (i <= 5) {
-        std::cout << "i = " << i << std::endl;
-        i = i + 1;
-    }
-}
-
-void nestedWhileExample() {
-    i = 1;
-    while (i <= 5) {
-        j = 10;
-        while (j <= 30) {
-            std::cout << "i = " << i << ", j = " << j << std::endl;
-            j = j + 10;
-        }
-        i = i + 1;
-    }
-}
+integer i, j, k;
 
 int main() {
-    auto _start = std::chrono::high_resolution_clock::now();
+    i = 11;
+    j = 11;
+    k = 8;
 
-    doWhileExample();
+    while(i < 30){
+    cout << i;
+    cout << "\n";
+    i = i + 1;
+    }
 
-    std::cout << std::endl;
+    cout << 11 * 2 - 3;
+    cout << "\n";
+    cout << 4 * 2 - 3;
+    cout << "\n";
+    cout << 2 * 3 - 3 + 11 + 11 * 7;
 
-    nestedWhileExample();
 
-    auto _end = std::chrono::high_resolution_clock::now();
-    long long _elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(_end - _start).count();
-    std::cout << "\n[" << _elapsed << " milliseconds execution time.]\n";
-
-    return 0;
 }

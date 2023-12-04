@@ -1,97 +1,70 @@
-#include <iostream>
-#include <iomanip>
+program DemoTestIf;
 
-int i;
-int j;
-double x;
-double y;
-bool p;
-bool q;
-int k; 
+integer i;
+integer j;
+integer a;
+integer b;
+integer c;
+integer k;
+integer x;
+integer y;
+string line;
 
 int main() {
+    line = "Hello World";
     i = 1;
     j = 2;
     if (i == j) {
-        x = 3.14;
+        x = 3;
     } else {
-        x = -5.0;
+        x = -5;
     }
     if (i != j) {
-        y = 3.14;
+        y = 3;
     } else {
-        y = -5.0;
+        y = -5;
     }
-    std::cout << "i = " << i << ", j = " << j << ", x = " << std::fixed << std::setprecision(2) << x << ", y = " << y << std::endl;
+    cout << i;
+    cout << "\n";
+    cout << j;
+    cout << "\n";
+    cout << x;
+    cout << "\n";
+    cout << y;
+    cout << "\n";
+    cout << "Hello World\n";
 
     if (i == j) {
-        x = -7.0;
+        x = -7;
     } else {
-        x = 8.0;
+        x = 8;
     }
     if (i != j) {
-        y = 14.0;
-    } else {
-        y = -2.0;
+        y = 14;
     }
-    std::cout << "i = " << i << ", j = " << j << ", x = " << std::fixed << std::setprecision(2) << x << ", y = " << y << std::endl;
+    else {
+        y = -2;
+    }
+    line = "Goodbye World!\n";
+    cout << i;
+    cout << "\n";
+    cout << j;
+    cout << "\n";
+    cout << x;
+    cout << "\n";
+    cout << y;
+    cout << "\n";
+    cout << line;
 
-    p = i == j;
-    if (p) {
-        x = 55.55;
-    } else {
-        x = 77.77;
-        y = 88.88;
-    }
-    std::cout << "i = " << i << ", j = " << j << ", x = " << std::fixed << std::setprecision(2) << x << ", y = " << y << std::endl;
-
-    q = i <= j;
-    k = 10;
-    if (p) {
-        i = 33;
-    } else {
-        if (!q) {
-            i = 44;
-        } else {
-            if (i == j) {
-                i = 55;
-            } else {
-                i = 6;
-            }
-        }
-    }
-    if (!p) {
-        if (q) {
-            j = 9;
-        } else {
-            j = -9;
-        }
-    }
-    if (p) {
-        if (q) {
-            k = 11;
-        } else {
-            k = 12;
-        }
-    }
-    std::cout << "i = " << i << ", j = " << j << ", x = " << std::fixed << std::setprecision(2) << x << ", y = " << y << std::endl;
-    std::cout << "k = " << k << std::endl;
-    std::cout << std::endl;
-
-    if (!p && q && (i != j) && (x < y)) {
-        std::cout << "Good-bye";
-    }
-    if (!p) {
-        if (q) {
-            if (i != j) {
-                if (x < y) {
-                    std::cout << ", world!" << std::endl;
-                }
-            }
-        }
+    if(10 >= 12){
+    cout << "Ten is not bigger than 12 dummy!";
     }
 
-    return 0;
+     cout << "\n";
+
+     if(10 <= 12){
+        cout << "Ten is less than 12";
+     }
+
 }
-
 

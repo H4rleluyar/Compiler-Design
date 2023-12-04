@@ -180,7 +180,7 @@ realConstant    : REAL;
 characterConstant : CHARACTER ;
 stringConstant    : STRING ;
 
-relOp : '==' | '<>' | '<' | '<=' | '>' | '>=';
+relOp : '==' | '!=' | '<' | '<=' | '>' | '>=';
 addOp : '+' | '-' | OR ;
 mulOp : '*' | '/' | DIV | MOD | AND ;
 
