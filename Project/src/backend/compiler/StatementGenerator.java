@@ -6,8 +6,6 @@ import intermediate.symtab.SymtabEntry;
 import intermediate.type.Typespec;
 import intermediate.type.Typespec.Form;
 
-import java.util.HashMap;
-
 import static backend.compiler.Instruction.*;
 import static intermediate.type.Typespec.Form.ENUMERATION;
 import static intermediate.type.Typespec.Form.SCALAR;

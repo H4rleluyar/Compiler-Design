@@ -19,9 +19,9 @@ block         : declarations intMain ;
 declarations  : ( constantsPart ';' )? ( typesPart ';' )?
               ( variablesPart ';' )? ( routinesPart ';')? ;
 
-variablesPart            : VAR variableDeclarationsList ;
+variablesPart            : variableDeclarationsList ;
 variableDeclarationsList : variableDeclarations ( ';' variableDeclarations )* ;
-variableDeclarations     : variableIdentifierList ':' typeSpecification ;
+variableDeclarations     : typeSpecification variableIdentifierList  ;
 variableIdentifierList   : variableIdentifier ( ',' variableIdentifier )* ;
 
 variableIdentifier  locals [ Typespec type = null, SymtabEntry entry = null ]
@@ -107,7 +107,6 @@ compoundStatement : '{' statementList '}';
 emptyStatement : ;
 
 statementList       : statement ( statement )* ;
-//assignmentStatement : lhs ':=' rhs ; //pascal version
 assignmentStatement : lhs '=' rhs ; //temp c++ version
 
 lhs locals [ Typespec type = null ]
