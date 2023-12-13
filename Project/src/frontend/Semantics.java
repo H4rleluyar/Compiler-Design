@@ -636,7 +636,7 @@ public class Semantics extends cppBaseVisitor<Object>
             idCtx.type = null;
         }
 
-        visit(ctx.block().declarations());
+        visit(ctx.declarations());
 
         // Enter the function's associated variable into its symbol table.
         if (functionDefinition)
@@ -647,8 +647,8 @@ public class Semantics extends cppBaseVisitor<Object>
             assocVarId.setType(returnType);
         }
 
-        visit(ctx.block().intMain().compoundStatement());
-        routineId.setExecutable(ctx.block().intMain().compoundStatement());
+        visit(ctx.compoundStatement());
+        routineId.setExecutable(ctx.compoundStatement());
 
         symtabStack.pop();
         return null;

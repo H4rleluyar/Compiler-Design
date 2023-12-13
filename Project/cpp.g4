@@ -18,7 +18,7 @@ programIdentifier   locals [ SymtabEntry entry = null ]
 intMain       : MAIN '(' ')' compoundStatement;
 block         : declarations intMain ;
 declarations  : ( constantsPart ';' )? ( typesPart ';' )?
-              ( variablesPart ';' )? ( routinesPart ';')? ;
+              ( variablesPart ';' )? ( routinesPart )? ;
 
 variablesPart            : variableDeclarationsList ;
 variableDeclarationsList : variableDeclarations ( ';' variableDeclarations )* ;
@@ -75,17 +75,17 @@ recordType          locals [ SymtabEntry entry = null ]
     : RECORD recordFields ';'? END ;
 recordFields : variableDeclarationsList ;
 
-routinesPart      : routineDefinition ( ';' routineDefinition)* ;
-routineDefinition : ( procedureHead | functionHead ) ';' block ;
-procedureHead     : PROCEDURE routineIdentifier parameters? ;
+routinesPart      : routineDefinition (  routineDefinition)* ;
+routineDefinition : ( procedureHead | functionHead ) declarations compoundStatement ;
+procedureHead     : PROCEDURE routineIdentifier '(' parameters? ')' ;
 functionHead      : FUNCTION  routineIdentifier parameters? ':' typeIdentifier ;
 
 routineIdentifier   locals [ Typespec type = null, SymtabEntry entry = null ]
     : IDENTIFIER ;
 
-parameters                : '(' parameterDeclarationsList ')' ;
-parameterDeclarationsList : parameterDeclarations ( ';' parameterDeclarations )* ;
-parameterDeclarations     : VAR? parameterIdentifierList ':' typeIdentifier ;
+parameters                : parameterDeclarationsList ;
+parameterDeclarationsList : parameterDeclarations ( ',' parameterDeclarations )* ;
+parameterDeclarations     : VAR? typeIdentifier parameterIdentifierList;
 parameterIdentifierList   : parameterIdentifier ( ',' parameterIdentifier )* ;
 
 parameterIdentifier   locals [ Typespec type = null, SymtabEntry entry = null ]
@@ -104,7 +104,7 @@ statement : ( assignmentStatement
           | forStatement
           ;
 
-compoundStatement : '{' statementList '}';
+compoundStatement : '{' statementList '}' ;
 emptyStatement : ;
 
 statementList       : statement ( statement )* ;
@@ -239,7 +239,7 @@ COUT        : C O U T ;
 WRITELN     : W R I T E L N ;
 READ        : R E A D ;
 READLN      : R E A D L N ;
-PROCEDURE   : P R O C E D U R E ;
+PROCEDURE   : V O I D ;
 FUNCTION    : F U N C T I O N ;
 
 IDENTIFIER : [a-zA-Z][a-zA-Z0-9]* ;

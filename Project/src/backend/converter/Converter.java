@@ -379,13 +379,13 @@ public class Converter extends cppBaseVisitor<Object>
             code.emitLine();
         }
 
-        visit(ctx.block().declarations());
+        visit(ctx.declarations());
 
         // Allocate structured data.
         emitAllocateStructuredVariables("", idCtx.entry.getRoutineSymtab());
         code.emitLine();
 
-        visit(ctx.block().intMain().compoundStatement().statementList());
+        visit(ctx.compoundStatement().statementList());
 
         if (functionDefinition)
         {
