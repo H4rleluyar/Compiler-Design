@@ -263,3 +263,5 @@ fragment CHARACTER_CHAR : ~('"')   // any non-quote character
 fragment STRING_CHAR : QUOTE QUOTE  // two consecutive quotes
                      | ~('"')      // any non-quote character
                      ;
+
+COMMENT : '//' ~[\r\n]* -> skip;
