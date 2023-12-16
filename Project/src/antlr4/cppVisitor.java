@@ -1,4 +1,4 @@
-// Generated from G:/CodeProjects/cs153working/project2/cpp.g4 by ANTLR 4.13.1
+// Generated from C:/Users/kevin/Downloads/CS153-Project/grammar/cpp.g4 by ANTLR 4.13.1
 
     package antlr4;
     import java.util.HashMap;
@@ -255,6 +255,12 @@ public interface cppVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitFunctionHead(cppParser.FunctionHeadContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link cppParser#returnStatement}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitReturnStatement(cppParser.ReturnStatementContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link cppParser#routineIdentifier}.
 	 * @param ctx the parse tree

@@ -76,9 +76,11 @@ recordType          locals [ SymtabEntry entry = null ]
 recordFields : variableDeclarationsList ;
 
 routinesPart      : routineDefinition (  routineDefinition)* ;
-routineDefinition : ( procedureHead | functionHead ) declarations compoundStatement ;
+routineDefinition : ( procedureHead | functionHead ) '{' ( variablesPart ';' )? statementList? (returnStatement ';')? '}' ;
 procedureHead     : PROCEDURE routineIdentifier '(' parameters? ')' ;
-functionHead      : FUNCTION  routineIdentifier parameters? ':' typeIdentifier ;
+functionHead      : typeIdentifier routineIdentifier '(' parameters? ')' ;
+
+returnStatement  : RETURN rhs ;
 
 routineIdentifier   locals [ Typespec type = null, SymtabEntry entry = null ]
     : IDENTIFIER ;
@@ -86,7 +88,7 @@ routineIdentifier   locals [ Typespec type = null, SymtabEntry entry = null ]
 parameters                : parameterDeclarationsList ;
 parameterDeclarationsList : parameterDeclarations ( ',' parameterDeclarations )* ;
 parameterDeclarations     : VAR? typeIdentifier parameterIdentifierList;
-parameterIdentifierList   : parameterIdentifier ( ',' parameterIdentifier )* ;
+parameterIdentifierList   : parameterIdentifier  ;
 
 parameterIdentifier   locals [ Typespec type = null, SymtabEntry entry = null ]
     : IDENTIFIER ;
@@ -97,7 +99,7 @@ statement : ( assignmentStatement
           | readStatement
           | readlnStatement
           | procedureCallStatement
-          | emptyStatement ) ';'
+          | emptyStatement) ';'
           | compoundStatement
           | ifStatement
           | whileStatement
@@ -241,6 +243,7 @@ READ        : R E A D ;
 READLN      : R E A D L N ;
 PROCEDURE   : V O I D ;
 FUNCTION    : F U N C T I O N ;
+RETURN      : R E T U R N ;
 
 IDENTIFIER : [a-zA-Z][a-zA-Z0-9]* ;
 INT        : [0-9]+ ;

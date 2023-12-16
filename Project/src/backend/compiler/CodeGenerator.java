@@ -127,6 +127,14 @@ public class CodeGenerator
         else                     emitComment(text.substring(0, 72) + " ...");
     }
 
+    public void emitComment(cppParser.ReturnStatementContext ctx) {
+        String text = String.format("%03d %s", ctx.getStart().getLine(),
+                ctx.getText());
+
+        if (text.length() <= 72) emitComment(text);
+        else                     emitComment(text.substring(0, 72) + " ...");
+    }
+
     /**
      * Emit a label.
      * @param label the label.

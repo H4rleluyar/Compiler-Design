@@ -636,7 +636,9 @@ public class Semantics extends cppBaseVisitor<Object>
             idCtx.type = null;
         }
 
-        visit(ctx.declarations());
+        if (ctx.variablesPart() != null) {
+            visit(ctx.variablesPart());
+        }
 
         // Enter the function's associated variable into its symbol table.
         if (functionDefinition)
@@ -647,10 +649,37 @@ public class Semantics extends cppBaseVisitor<Object>
             assocVarId.setType(returnType);
         }
 
-        visit(ctx.compoundStatement());
-        routineId.setExecutable(ctx.compoundStatement());
+        if (ctx.statementList() != null) {
+            visit(ctx.statementList());
+            routineId.setExecutable(ctx.statementList());
+        }
+
+        if (functionDefinition) {
+            visit(ctx.returnStatement());
+        }
 
         symtabStack.pop();
+        return null;
+    }
+
+    @Override
+    public Object visitReturnStatement(cppParser.ReturnStatementContext ctx) {
+        if (ctx.getParent() instanceof cppParser.RoutineDefinitionContext) {
+            cppParser.RoutineDefinitionContext routCtx = (cppParser.RoutineDefinitionContext) ctx.getParent();
+            String functionName = routCtx.functionHead().routineIdentifier().IDENTIFIER().getText().toLowerCase();
+            SymtabEntry functionId = symtabStack.lookupLocal(functionName);
+
+            visitChildren(ctx);
+
+            Typespec funcType = functionId.getType();
+            Typespec rhsType = ctx.rhs().expression().type;
+
+            if (!TypeChecker.areAssignmentCompatible(funcType, rhsType))
+            {
+                error.flag(INCOMPATIBLE_ASSIGNMENT, ctx.rhs());
+            }
+        }
+
         return null;
     }
 
@@ -688,11 +717,9 @@ public class Semantics extends cppBaseVisitor<Object>
         // Loop over the parameter identifiers.
         cppParser.ParameterIdentifierListContext parmListCtx =
                                                 ctx.parameterIdentifierList();
-        for (cppParser.ParameterIdentifierContext parmIdCtx :
-                                            parmListCtx.parameterIdentifier())
-        {
-            int lineNumber = parmIdCtx.getStart().getLine();
-            String parmName = parmIdCtx.IDENTIFIER().getText().toLowerCase();
+
+            int lineNumber = parmListCtx.parameterIdentifier().getStart().getLine();
+            String parmName = parmListCtx.parameterIdentifier().IDENTIFIER().getText().toLowerCase();
             SymtabEntry parmId = symtabStack.lookupLocal(parmName);
 
             if (parmId == null)
@@ -704,20 +731,20 @@ public class Semantics extends cppBaseVisitor<Object>
                     && (mode != EXECUTOR)
                     && (parmType.getForm() == SCALAR))
                 {
-                    error.flag(INVALID_REFERENCE_PARAMETER, parmIdCtx);
+                    error.flag(INVALID_REFERENCE_PARAMETER, parmListCtx.parameterIdentifier());
                 }
             }
             else
             {
-                error.flag(REDECLARED_IDENTIFIER, parmIdCtx);
+                error.flag(REDECLARED_IDENTIFIER, parmListCtx.parameterIdentifier());
             }
 
-            parmIdCtx.entry = parmId;
-            parmIdCtx.type  = parmType;
+            parmListCtx.parameterIdentifier().entry = parmId;
+            parmListCtx.parameterIdentifier().type  = parmType;
 
             parameterSublist.add(parmId);
             parmId.appendLineNumber(lineNumber);
-        }
+
 
         return parameterSublist;
     }

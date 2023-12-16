@@ -1,6 +1,7 @@
 package backend.compiler;
 
 import antlr4.cppParser;
+import intermediate.symtab.Predefined;
 import intermediate.symtab.Symtab;
 import intermediate.symtab.SymtabEntry;
 import intermediate.symtab.SymtabEntry.Kind;
@@ -292,14 +293,33 @@ public class ProgramGenerator extends CodeGenerator
                                     new StructuredDataGenerator(this, compiler);
         structuredCode.emitData(routineId);
 
+        if (ctx.functionHead() != null) {
+            if (ctx.functionHead().parameters() != null) {
+                Typespec firstParamType = ctx.functionHead().parameters().parameterDeclarationsList().parameterDeclarations(0).typeIdentifier().type;
+                emitLoadLocal(firstParamType, 0);
+            }
+        } else if (ctx.procedureHead() != null) {
+            if (ctx.procedureHead().parameters() != null) {
+                Typespec firstParamType = ctx.procedureHead().parameters().parameterDeclarationsList().parameterDeclarations(0).typeIdentifier().type;
+                emitLoadLocal(firstParamType, 0);
+            }
+        }
+
         localVariables = new LocalVariables(routineSymtab.getMaxSlotNumber());
 
         // Emit code for the compound statement.
-        cppParser.CompoundStatementContext stmtCtx =
-            (cppParser.CompoundStatementContext) routineId.getExecutable();
-        compiler.visit(stmtCtx);
+        if (routineId.getExecutable() != null) {
+            cppParser.StatementListContext stmtCtx =
+                    (cppParser.StatementListContext) routineId.getExecutable();
+            compiler.visit(stmtCtx);
+        }
+        if (ctx.returnStatement() != null) {
+            compiler.visit(ctx.returnStatement());
+            emitRoutineReturn(routineId);
+        } else {
+            emit(RETURN);
+        }
 
-        emitRoutineReturn(routineId);
         emitRoutineEpilogue();
     }
 

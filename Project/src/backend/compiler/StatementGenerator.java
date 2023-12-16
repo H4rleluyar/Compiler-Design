@@ -295,7 +295,29 @@ public class StatementGenerator extends CodeGenerator {
         }
     }
 
+    public void emitReturnStatement(cppParser.ReturnStatementContext retStmtCtx) {
+        if (retStmtCtx.getParent() instanceof cppParser.RoutineDefinitionContext) {
+            cppParser.RoutineDefinitionContext routCtx = (cppParser.RoutineDefinitionContext) retStmtCtx.getParent();
+            SymtabEntry functionId = routCtx.functionHead().routineIdentifier().entry;
+            Typespec functionType = routCtx.functionHead().routineIdentifier().type;
 
+            cppParser.ExpressionContext exprCtx = retStmtCtx.rhs().expression();
+            Typespec exprType = exprCtx.type;
+
+            compiler.visit(exprCtx);
+
+            // float variable := integer constant
+            if ((functionType == Predefined.doubleType)
+                    && (exprType.baseType() == Predefined.intType))
+                emit(I2F);
+
+            String varName = functionId.getName();
+            SymtabEntry varId = functionId.getRoutineSymtab().lookup(varName);
+
+            emitStoreLocal(functionId.getType(), varId.getSlotNumber());
+
+        }
+    }
 
     /**
      * Emit a call to a procedure or a function.
@@ -540,4 +562,5 @@ public class StatementGenerator extends CodeGenerator {
             emit(POP);
         }
     }
+
 }

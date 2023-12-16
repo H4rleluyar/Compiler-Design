@@ -379,13 +379,13 @@ public class Converter extends cppBaseVisitor<Object>
             code.emitLine();
         }
 
-        visit(ctx.declarations());
+        visit(ctx.variablesPart());
 
         // Allocate structured data.
         emitAllocateStructuredVariables("", idCtx.entry.getRoutineSymtab());
         code.emitLine();
 
-        visit(ctx.compoundStatement().statementList());
+        visit(ctx.statementList());
 
         if (functionDefinition)
         {
@@ -421,18 +421,16 @@ public class Converter extends cppBaseVisitor<Object>
         Typespec parmType = typeCtx.type;
 
         // Loop over the parameters.
-        for (cppParser.ParameterIdentifierContext parmIdCtx :
-                                            parmListCtx.parameterIdentifier())
-        {
+
             code.emit(currentSeparator);
             code.split(60);
 
             visit(typeCtx);
-            code.emit(" " + parmIdCtx.entry.getName());
+            code.emit(" " + parmListCtx.parameterIdentifier().entry.getName());
 
             if (parmType.getForm() == ARRAY) emitArraySpecifier(parmType);
             currentSeparator = ", ";
-        }
+
 
         return null;
     }

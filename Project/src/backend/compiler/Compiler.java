@@ -213,6 +213,13 @@ public class Compiler extends cppBaseVisitor<Object>
     }
 
     @Override
+    public Object visitReturnStatement(cppParser.ReturnStatementContext ctx) {
+        statementCode.emitComment(ctx);
+        statementCode.emitReturnStatement(ctx);
+        return null;
+    }
+
+    @Override
     public Object visitNotFactor(cppParser.NotFactorContext ctx)
     {
         expressionCode.emitNotFactor(ctx);
