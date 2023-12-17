@@ -1,4 +1,4 @@
-//This sample program will be demonstrate Basic arithmetic operations with operator precedence, Assignment statements, At least one conditional control statement (e.g., IF).
+//This sample program will be demonstrate and test Basic arithmetic operations with operator precedence, Assignment statements, and At least one conditional control statement (e.g., IF).
 
 #include <SampleTestIf>
 

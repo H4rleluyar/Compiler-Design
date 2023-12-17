@@ -1,8 +1,6 @@
-//This sample programs will give errors when compiling it but its purpose is to be used in order to demostate the At least two data types with type checking
-// and Basic syntax error detection and recovery (this could seen in the errors that are shown when trying to compile this program)
-
-
-#include <SampleTestWhile>
+//This sample programs will give errors when compiling it but its purpose is to be used in order to demonstrate and test that "At least two data types with type checking"
+//It also demonstrate and test Basic syntax error detection and recovery (this could seen in the errors that are shown when trying to compile this program)
+#include <SampleTypeSyntax>
 
 int i, j, k;
 double a,s,f;

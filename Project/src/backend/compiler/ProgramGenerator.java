@@ -1,7 +1,6 @@
 package backend.compiler;
 
 import antlr4.cppParser;
-import intermediate.symtab.Predefined;
 import intermediate.symtab.Symtab;
 import intermediate.symtab.SymtabEntry;
 import intermediate.symtab.SymtabEntry.Kind;
