@@ -46,6 +46,18 @@ void testtt(boolean w) {
     }
 }
 
+void squareloop(int n) {
+    int i;
+    i = 0;
+    for (int j = 0; j <= n; j++) {
+        i = j * j;
+        cout << j;
+        cout << " squared is ";
+        cout << i;
+        cout << "\n";
+    }
+}
+
 double testfunc(double x, double y) {
     return x+y;
 }
@@ -69,6 +81,17 @@ string testfuncc(string one, string two) {
     string newstring;
     newstring = one + two;
     return newstring;
+}
+
+int testfor(int x) {
+    int i;
+    i = 0;
+    for (int h = x; h >= 6; h--) {
+        cout << h;
+        cout << "\n";
+        i = h;
+    }
+    return i;
 }
 
 main() {
@@ -138,4 +161,16 @@ main() {
     cout << "\n";
     cout << testfuncc("hi", "bye");
     cout << "\n";
+
+    for (int z = 0; z < 5; z++) {
+        cout << z;
+        cout << "\n";
+    }
+
+    i = testfor(10);
+    cout << "the final number was: ";
+    cout << i;
+    cout << "\n";
+
+    squareloop(10);
 }

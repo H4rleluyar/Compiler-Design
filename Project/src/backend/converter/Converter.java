@@ -697,7 +697,7 @@ public class Converter extends cppBaseVisitor<Object>
     @Override
     public Object visitForStatement(cppParser.ForStatementContext ctx)
     {
-        cppParser.VariableContext controlCtx = ctx.variable();
+        /*cppParser.VariableContext controlCtx = ctx.variable();
         boolean compound = ctx.statement().compoundStatement() != null;
         boolean to = ctx.TO() != null;
 
@@ -719,7 +719,7 @@ public class Converter extends cppBaseVisitor<Object>
 
         // Statement.
         if (compound) code.emitStart();
-        visit(ctx.statement());
+        visit(ctx.statement());*/
 
         return null;
     }

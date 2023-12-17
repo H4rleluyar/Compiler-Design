@@ -122,7 +122,15 @@ falseStatement : statement ;
 
 whileStatement : WHILE '(' expression ')' statement ;
 
-forStatement : FOR variable ':=' expression ( TO | DOWNTO ) expression DO statement ;
+forStatement : FOR '(' variableDeclarations '=' rhs ';' variable ( greaterOp | greaterEqOp
+                       | lessOp | lessEqOp ) expression ';' variable ( incrementOp |
+                       decrementOp ) ')' compoundStatement;
+greaterOp   : '>'  ;
+greaterEqOp : '>=' ;
+lessOp      : '<'  ;
+lessEqOp    : '<=' ;
+incrementOp : '++' ;
+decrementOp : '--' ;
 
 procedureCallStatement : procedureName '(' argumentList? ')' ;
 
@@ -235,8 +243,6 @@ UNTIL       : U N T I L ;
 WHILE       : W H I L E;
 DO          : D O ;
 FOR         : F O R;
-TO          : T O ;
-DOWNTO      : D O W N T O ;
 COUT        : C O U T ;
 WRITELN     : W R I T E L N ;
 READ        : R E A D ;

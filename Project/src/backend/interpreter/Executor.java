@@ -152,7 +152,7 @@ public class Executor extends cppBaseVisitor<Object>
     @Override
     public Object visitForStatement(cppParser.ForStatementContext ctx)
     {
-        cppParser.VariableContext   controlCtx   = ctx.variable();
+        /*cppParser.VariableContext   controlCtx   = ctx.variable();
         cppParser.ExpressionContext startExprCtx = ctx.expression().get(0);
         cppParser.ExpressionContext stopExprCtx  = ctx.expression().get(1);
 
@@ -214,7 +214,7 @@ public class Executor extends cppBaseVisitor<Object>
                     assignValue(controlCtx, nextValue, Predefined.charType);
                 }
             }
-        }
+        }*/
 
         return null;
     }

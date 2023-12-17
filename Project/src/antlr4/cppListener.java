@@ -605,6 +605,66 @@ public interface cppListener extends ParseTreeListener {
 	 */
 	void exitForStatement(cppParser.ForStatementContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link cppParser#greaterOp}.
+	 * @param ctx the parse tree
+	 */
+	void enterGreaterOp(cppParser.GreaterOpContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link cppParser#greaterOp}.
+	 * @param ctx the parse tree
+	 */
+	void exitGreaterOp(cppParser.GreaterOpContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link cppParser#greaterEqOp}.
+	 * @param ctx the parse tree
+	 */
+	void enterGreaterEqOp(cppParser.GreaterEqOpContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link cppParser#greaterEqOp}.
+	 * @param ctx the parse tree
+	 */
+	void exitGreaterEqOp(cppParser.GreaterEqOpContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link cppParser#lessOp}.
+	 * @param ctx the parse tree
+	 */
+	void enterLessOp(cppParser.LessOpContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link cppParser#lessOp}.
+	 * @param ctx the parse tree
+	 */
+	void exitLessOp(cppParser.LessOpContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link cppParser#lessEqOp}.
+	 * @param ctx the parse tree
+	 */
+	void enterLessEqOp(cppParser.LessEqOpContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link cppParser#lessEqOp}.
+	 * @param ctx the parse tree
+	 */
+	void exitLessEqOp(cppParser.LessEqOpContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link cppParser#incrementOp}.
+	 * @param ctx the parse tree
+	 */
+	void enterIncrementOp(cppParser.IncrementOpContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link cppParser#incrementOp}.
+	 * @param ctx the parse tree
+	 */
+	void exitIncrementOp(cppParser.IncrementOpContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link cppParser#decrementOp}.
+	 * @param ctx the parse tree
+	 */
+	void enterDecrementOp(cppParser.DecrementOpContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link cppParser#decrementOp}.
+	 * @param ctx the parse tree
+	 */
+	void exitDecrementOp(cppParser.DecrementOpContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link cppParser#procedureCallStatement}.
 	 * @param ctx the parse tree
 	 */

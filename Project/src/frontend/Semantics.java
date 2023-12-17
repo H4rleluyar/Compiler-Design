@@ -819,20 +819,26 @@ public class Semantics extends cppBaseVisitor<Object>
     @Override
     public Object visitForStatement(cppParser.ForStatementContext ctx)
     {
-        cppParser.VariableContext varCtx = ctx.variable();
+        cppParser.VariableDeclarationsContext varCtx = ctx.variableDeclarations();
         visit(varCtx);
+        String controlName = varCtx.variableIdentifierList().variableIdentifier(0).IDENTIFIER().getText().toLowerCase();
+        Symtab symtab = symtabStack.getLocalSymtab();
 
-        String controlName = varCtx.variableIdentifier().getText().toLowerCase();
+        SymtabEntry controlVarId =
+                symtabStack.enterLocal(controlName, VARIABLE);
+        controlVarId.setSlotNumber(symtab.getMaxSlotNumber());
+        controlVarId.setType(varCtx.typeSpecification().type);
+
+        SymtabEntry varId = symtabStack.lookupLocal(controlName);
         Typespec controlType = Predefined.intType;
 
-        if (varCtx.entry != null)
+        if (varCtx.typeSpecification() != null)
         {
-            controlType = varCtx.type;
+            controlType = varCtx.typeSpecification().type;
 
             if (   (controlType.getForm() != SCALAR )
-                || (controlType == Predefined.doubleType)
-                || (controlType == Predefined.stringType)
-                || (varCtx.modifier().size() != 0))
+                    || (controlType == Predefined.doubleType)
+                    || (controlType == Predefined.stringType) )
             {
                 error.flag(INVALID_CONTROL_VARIABLE, varCtx);
             }
@@ -840,19 +846,43 @@ public class Semantics extends cppBaseVisitor<Object>
         else
         {
             error.flag(UNDECLARED_IDENTIFIER, ctx.getStart().getLine(),
-                       controlName);
+                    controlName);
         }
 
-        cppParser.ExpressionContext startCtx = ctx.expression().get(0);
-        cppParser.ExpressionContext endCtx   = ctx.expression().get(1);
+        visit(ctx.rhs());
 
-        visit(startCtx);
-        visit(endCtx);
+        Typespec varType = varId.getType();
+        Typespec startType = ctx.rhs().expression().type;
 
-        if (startCtx.type != controlType) error.flag(TYPE_MISMATCH, startCtx);
-        if (startCtx.type != endCtx.type) error.flag(TYPE_MISMATCH, endCtx);
+        if (!TypeChecker.areAssignmentCompatible(varType, startType))
+        {
+            error.flag(INCOMPATIBLE_ASSIGNMENT, ctx.rhs());
+        }
 
-        visit(ctx.statement());
+        cppParser.VariableContext varCtx1 = ctx.variable(0);
+        visit(varCtx1);
+
+        if (controlName != varCtx1.entry.getName().toLowerCase()) {
+            error.flag(INVALID_VARIABLE, ctx.variable(0));
+        }
+
+        visit(ctx.expression());
+
+        Typespec endType = ctx.expression().type;
+
+        if (!TypeChecker.areAssignmentCompatible(varType, endType))
+        {
+            error.flag(INCOMPATIBLE_ASSIGNMENT, ctx.expression());
+        }
+
+        cppParser.VariableContext varCtx2 = ctx.variable(1);
+        visit(varCtx2);
+
+        if (controlName != varCtx2.entry.getName().toLowerCase()) {
+            error.flag(INVALID_VARIABLE, ctx.variable(1));
+        }
+
+        visit(ctx.compoundStatement());
         return null;
     }
 

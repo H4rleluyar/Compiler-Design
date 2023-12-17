@@ -370,6 +370,42 @@ public interface cppVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitForStatement(cppParser.ForStatementContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link cppParser#greaterOp}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitGreaterOp(cppParser.GreaterOpContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link cppParser#greaterEqOp}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitGreaterEqOp(cppParser.GreaterEqOpContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link cppParser#lessOp}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitLessOp(cppParser.LessOpContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link cppParser#lessEqOp}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitLessEqOp(cppParser.LessEqOpContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link cppParser#incrementOp}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitIncrementOp(cppParser.IncrementOpContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link cppParser#decrementOp}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDecrementOp(cppParser.DecrementOpContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link cppParser#procedureCallStatement}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

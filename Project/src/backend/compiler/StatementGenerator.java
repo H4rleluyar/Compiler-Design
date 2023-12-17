@@ -146,20 +146,26 @@ public class StatementGenerator extends CodeGenerator {
         Label loopAgainLabel = new Label();
         Label loopStopLabel = new Label();
 
-        compiler.visit(ctx.expression(0));
+        cppParser.VariableIdentifierContext controlCtx = ctx.variableDeclarations().variableIdentifierList().variableIdentifier(0);
+        compiler.visit(controlCtx);
+        compiler.visit(ctx.rhs());
 
-        if (ctx.variable().entry.getSlotNumber() != 0) {
-            emit(ISTORE, ctx.variable().entry.getSlotNumber());
+        if (controlCtx.entry.getSlotNumber() != 0) {
+            emit(ISTORE, controlCtx.entry.getSlotNumber());
         } else {
-            emit(PUTSTATIC, programName + "/" + ctx.variable().getText() + " " + typeDescriptor(ctx.variable().type));
+            emit(PUTSTATIC, programName + "/" + controlCtx.getText() + " " + typeDescriptor(ctx.variableDeclarations().typeSpecification().type));
         }
 
         emitLabel(loopTopLabel);
-        compiler.visit(ctx.variable());
-        compiler.visit(ctx.expression(1));
+        compiler.visit(ctx.variable(0));
+        compiler.visit(ctx.expression());
 
-        if (ctx.TO() != null) {
+        if (ctx.lessOp() != null) {
+            emit(IF_ICMPGE, loopStopLabel);
+        } else if (ctx.lessEqOp() != null) {
             emit(IF_ICMPGT, loopStopLabel);
+        } else if (ctx.greaterOp() != null) {
+            emit(IF_ICMPLE, loopStopLabel);
         } else {
             emit(IF_ICMPLT, loopStopLabel);
         }
@@ -172,20 +178,21 @@ public class StatementGenerator extends CodeGenerator {
 
         emitLabel(loopAgainLabel);
         emit(IFNE, loopExitLabel);
-        compiler.visit(ctx.statement());
-        compiler.visit(ctx.variable());
+        compiler.visit(ctx.compoundStatement());
+        emitLine();
+        compiler.visit(ctx.variable(1));
         emit(ICONST_1);
 
-        if (ctx.TO() != null) {
+        if (ctx.incrementOp() != null) {
             emit(IADD);
         } else {
             emit(ISUB);
         }
 
-        if (ctx.variable().entry.getSlotNumber() != 0) {
-            emit(ISTORE, ctx.variable().entry.getSlotNumber());
+        if (controlCtx.entry.getSlotNumber() != 0) {
+            emit(ISTORE, controlCtx.entry.getSlotNumber());
         } else {
-            emit(PUTSTATIC, programName + "/" + ctx.variable().getText() + " " + typeDescriptor(ctx.variable().type));
+            emit(PUTSTATIC, programName + "/" + controlCtx.getText() + " " + typeDescriptor(ctx.variableDeclarations().typeSpecification().type));
         }
 
         emit(GOTO, loopTopLabel);
